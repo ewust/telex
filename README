@@ -1,0 +1,27 @@
+Telex Anticensorship proxy
+--------------------------
+
+Telex is a new approach to anticensorship technology, allowing people
+access to websites that are blocked by their government. With support from
+ISPs around the world, detecting the use of Telex as a proxy is
+substantially more difficult than detecting the use of conventional
+proxies in use today.
+
+For more information, see our website https://telex.cc
+--------------------------
+
+To install and use Telex, see the INSTALL file in the telex-client
+directory.
+
+The telex client acts as a TCP tunnel for any socket that connects to it.
+The default public key we have included in the telex-client directory
+(pubkey) will allow the client to be used as an HTTP proxy, when used with
+our demonstration ISP (e.g. NotBlocked.telex.cc).
+
+--------------------------
+NOTE:
+This software is a proof-of-concept, and does NOT provide strong security.
+It is a research prototype only intended to be used for experimental
+purposes.
+
+
