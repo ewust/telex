@@ -1,0 +1,55 @@
+Building telex-client on Win32 with MINGW
+=========================================
+
+# Prerequisites:
+
+MINGW plus MSYS plus C++ compiler
+Python (in your path)
+Tarballs in your MSYS home directory:
+    telex-client.tar.gz
+    http://www.openssl.org/source/openssl-1.0.0d.tar.gz
+    http://prdownloads.sourceforge.net/argtable/argtable2-13.tar.gz
+    http://monkey.org/~provos/libevent-2.0.12-stable.tar.gz
+
+# Setting up:
+
+    # (From the MINGW shell)
+    mkdir $HOME/telex
+    mkdir $HOME/telex/local
+    export LDFLAGS="-L$HOME/telex/local/lib"
+    export CFLAGS="-I$HOME/telex/local/include"
+    cd $HOME/telex
+    Extract telex-client tarball
+
+# Building required libraries:
+
+    # patched openssl
+    cd $HOME/telex/
+    tar xf ../openssl-1.0.0d.tar.gz
+    cd openssl-1.0.0d
+    patch -p1 < ../telex/telex-client/openssl-1.0.0d-telex.patch
+    ./config no-shared no-hw no-asm --prefix=$HOME/telex/local/ --openssldir=$HOME/telex/local/
+    make
+    make install
+
+    # libevent2, linked against patched OpenSSL
+    cd $HOME/telex/
+    tar xf ../libevent-2.0.12-stable.tar.gz 
+    cd libevent-2.0.12-stable
+    ./configure --prefix=$HOME/telex/local --disable-shared
+    make
+    make install
+
+    # argtable2
+    cd $HOME/telex/
+    tar xf ../argtable2-13.tar.gz
+    cd argtable2-13
+    ./configure --prefix=$HOME/telex/local
+    make
+    make install
+         
+# Building telex-client:
+
+    cd $HOME/telex/telex-client
+    CC=gcc make -f Makefile.w32
+    # Output is telex-client.exe

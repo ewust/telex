@@ -1,0 +1,35 @@
+#!/usr/bin/env sage
+
+import sys
+import os
+from sage.all import *
+
+def dump_point(P):
+    xy = P.xy()
+    xyh = map(lambda v:hex(int(v))[2:-1], xy)
+    return xyh[0] + " " + xyh[1]
+
+# PTWIST-168 prime curve
+p = 2**168 - 2**8 - 1
+F = GF(p)
+b = 114301813541519167821195403070898020343878856329174
+x = 2
+y = 342581008510239659405023808572191026457361540109042
+r = 374144419156711147060143343079555958890598677719703
+
+E = EllipticCurve(F, [-3, b])
+print E
+
+P = E.random_point()
+Q = E.random_point()
+s = F.random_element()
+cmd = "./ptwist168 " + dump_point(P) + " " + dump_point(Q) + " " + hex(int(s))[2:-1]
+print cmd
+os.system(cmd)
+P2 = 2*P
+PQ = P+Q
+for i in xrange(1000):
+    P = int(s)*P
+print dump_point(P2)
+print dump_point(PQ)
+print dump_point(P)

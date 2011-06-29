@@ -1,0 +1,107 @@
+Known Implementation Issues with Telex
+======================================
+
+Our Telex client is a prototype - there are several known implementation
+details that would allow a censor the ability to detect usage of Telex.
+While we believe these prototypes are useful models for research and
+experimentation, we emphasize that they may not provide the performance or
+security of a more polished production implementation, and should be used
+accordingly.
+
+To emphasize and document this point, we list below several known
+implementation limitations. This list is not meant to be exhaustive.
+
+Single NotBlocked.com
+---------------------
+Currently, telex-client only allows a single NotBlocked.com choice.
+Ideally, the client would want to choose websites that the user already
+frequently visits, and have a large set to switch between. 
+
+It is suspicious behavior if a user used to visit ~100 websites a day, and
+then suddenly starts visiting only 1 of them, several hundred times a day.
+
+
+DNS lookups fail to mimic browsers
+----------------------------------
+Our client uses libevent to perform DNS lookups of the NotBlocked domain.
+Libevent appears to use 0x20-bit encoding, a known defense against DNS
+Forgery. This behavior is observable to the censor, and may differ from
+the popular web browsers telex-client attempts to mimic. 
+
+Furthermore, DNS lookups from telex-client and libevent may have
+observably different caching or pinning mechanisms than web browsers.
+
+
+OpenSSL version
+---------------
+We implemented our changes to OpenSSL on the latest version, 1.0.0d.
+Many browsers may use previous versions of OpenSSL, or different SSL
+implementations entirely. These different versions or implementations may
+provide observable differences between telex-client and a web browser,
+such as differently supported or ordered cipher suites, compression
+methods, or TLS extensions.
+
+
+No session resumption
+---------------------
+Normal SSL implementations may implement TLS session resumption, a
+behavior that is fairly easy to observe. Not all websites support
+session resumption, however, choosing a NotBlocked site that does may
+inadvertantly reveal Telex usage. While OpenSSL supports session
+resumption, telex-client and the Telex station do not yet support it
+(though we see no practical reason preventing it from being implemented in
+the future; see whitepaper).
+
+
+Only 1 cipher suite supported
+-----------------------------
+We chose to only implement one cipher suite method: CBC_AES_256_SHA1_DHE.
+While our demonstration NotBlocked.com (notblocked.telex.cc), running a
+default Apache web server, chooses this cipher method, not all websites
+will. We believe Telex could be extended to support further key exchange
+and cipher suites, but until then, care must be taken to ensure that the
+chosen NotBlocked will pick the expected cipher suite.
+
+
+OpenSSL chuncking
+-----------------
+OpenSSL appears to reveal the length of data passed to the SSL_write()
+function by the application. In one of our tests, fetching a 4096-byte
+file over HTTP-over-TLS (4384 bytes including HTTP header) resulted in 2
+Application Data Protocol TLS records, of 320 and 4128 bytes respectively.
+
+Fetching the same file via Telex resulted in 4 Application Data Protocol
+TLS records, of 32 bytes (see empty fragment), 4128 bytes, 32 bytes,
+and 320 bytes (another run using telex returned 32, 2928, 32, 1520).
+
+(each record contains a 32-byte MAC, so N packets should contain
+(4384 + 32*N) bytes)
+
+
+TCP congestion window
+---------------------
+In normal TLS, the (encrypted) HTTP request packet from the client is
+ACKed by the Application Data response by the server (TCP allows packets
+that contain data to also act as acknowledgements). This is due to the
+congestion window of the server having grown since the start of the
+connection, to a point where it will buffer multiple packets before
+sending a cummulative ACK.
+
+In our telex_relay however, this congestion window has not grown - from
+the telex_relay perspective, it is the start of the connection, and thus
+will ACK the first packet it gets (HTTP request in Application Data).
+
+
+IP ID field
+-----------
+At the first message sent by our telex_relay process (TLS Finished
+message from the server), our implementation begins to use its own 
+TCP/IP stack. One of the side-effects of this is that the
+Identification field in the IP header is now populated by our TCP/IP
+stack. Since this is normally a system-wide global that is incremented 
+for each packet sent, it is possible for an adversary to observe our
+transistion. There are several defenses to this, including changing
+our implementation to correct its IP ID per connection. For a website
+under a large amount of traffic, this type of analysis is more
+difficult, and thus makes such a website a natural choice for a
+potential notblocked.com.
