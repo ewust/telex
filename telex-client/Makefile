@@ -3,8 +3,8 @@ LIB=-L../local/lib
 
 # Uncomment these 2 lines if you installed openssl/libevent 
 # to the default location /usr/local (e.g. no ./configure --prefix=)
-INCLUDE=-I/usr/local/ssl/include -I/usr/local/include
-LIB=-L/usr/local/ssl/lib -L/usr/local/lib
+#INCLUDE=-I/usr/local/ssl/include -I/usr/local/include
+#LIB=-L/usr/local/ssl/lib -L/usr/local/lib
 
 CFLAGS=-O3 -Wall $(INCLUDE)
 LDFLAGS=$(LIB) -lssl -lcrypto -levent_core -levent_extra -levent_openssl -largtable2
