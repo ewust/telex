@@ -1,55 +1,59 @@
-
-
-#(64-bit install on ubuntu 10.04 running on an ec2-micro instance)
+Building telex-client on Linux
+==============================
+# Tested on a 64-bit ubuntu 10.04 ec2-micro instance
 # non-root build; must already have build-essential installed.
 
-mkdir $HOME/telex
-mkdir $HOME/telex/local
-cd $HOME/telex
-tar zxf telex-client.tar.gz
+# Prerequisites:
+C/C++ compiler  # gcc/g++ (sudo apt-get install build-essential)
+Patch utility
+Tarballs in your $HOME directory:
+    telex-client.tar.gz
+    http://www.openssl.org/source/openssl-1.0.0d.tar.gz
+    http://monkey.org/~provos/libevent-2.0.12-stable.tar.gz
+    http://prdownloads.sourceforge.net/argtable/argtable2-13.tar.gz
+    
 
-# Telex-OpenSSL
-cd ~ && wget http://www.openssl.org/source/openssl-1.0.0d.tar.gz
-tar xf openssl-1.0.0d.tar.gz && cd openssl-1.0.0d/
-#install our changes (locally to ~/telex/local/)
-patch -p1 < ../telex/telex-client/openssl-1.0.0d-telex.patch
-./config --shared --prefix=$HOME/telex/local/ --openssldir=$HOME/telex/local/
-make
-make install # no root for local install
+# Setting up:    
 
+    mkdir $HOME/telex
+    mkdir $HOME/telex/local
+    cd $HOME/telex
+    tar zxf telex-client.tar.gz
 
-# Client
-    # Libevent2:
-    cd ~
-    wget http://monkey.org/~provos/libevent-2.0.12-stable.tar.gz
-    tar xf libevent-2.0.12-stable.tar.gz 
+# Building required libraries:
+
+    # patched OpenSSL
+    cd $HOME/telex/
+    tar xf ../openssl-1.0.0d.tar.gz
+    cd openssl-1.0.0d
+    patch -p1 < ../telex/telex-client/openssl-1.0.0d-telex.patch
+    ./config --shared --prefix=$HOME/telex/local/ --openssldir=$HOME/telex/local/
+    make
+    make install # no root (sudo) needed for local install
+
+    # libevent2, linked against patched OpenSSL
+    cd $HOME/telex/
+    tar xf ../libevent-2.0.12-stable.tar.gz 
     cd libevent-2.0.12-stable
     LDFLAGS="-L$HOME/telex/local/lib" && export LDFLAGS
     CFLAGS="-I$HOME/telex/local/include" && export CFLAGS
     ./configure --prefix=$HOME/telex/local
     make
     make install 
-sudo apt-get install libargtable2-dev #guess you could install from source
-    #http://prdownloads.sourceforge.net/argtable/argtable2-13.tar.gz
-    cd ~
-    wget http://prdownloads.sourceforge.net/argtable/argtable2-13.tar.gz
-    tar xf argtable2-13.tar.gz
+
+    # argtable 2 (libargtable2-dev)
+    cd $HOME/telex/
+    tar xf ../argtable2-13.tar.gz
     cd argtable2-13
     ./configure --prefix=$HOME/telex/local
     make
     make install
     
-cd ~/telex/telex-client/
-#Modify Makefile, if it isn't already
-#override CFLAGS += -Wall -O2 -I../local/include
-#LDFLAGS = -L../local/lib -lssl -lcrypto \
-#          -levent_core -levent_extra -levent_openssl \
-#           -largtable2
+# Building telex-client:
 
-make
-LD_LIBRARY_PATH=$HOME/telex/local/lib ./telex-client notblocked.telex.cc
+    cd $HOME/telex/telex-client/
+    make    # creates telex-client binary
 
+# Running telex-client: 
 
-
-
-
+    LD_LIBRARY_PATH=$HOME/telex/local/lib ./telex-client notblocked.telex.cc
