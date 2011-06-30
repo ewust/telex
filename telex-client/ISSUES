@@ -1,4 +1,4 @@
-Known Implementation Issues with Telex
+Known implementation issues with Telex
 ======================================
 
 Our Telex client is a prototype - there are several known implementation
@@ -47,10 +47,10 @@ No session resumption
 Normal SSL implementations may implement TLS session resumption, a
 behavior that is fairly easy to observe. Not all websites support
 session resumption, however, choosing a NotBlocked site that does may
-inadvertantly reveal Telex usage. While OpenSSL supports session
+inadvertently reveal Telex usage. While OpenSSL supports session
 resumption, telex-client and the Telex station do not yet support it
 (though we see no practical reason preventing it from being implemented in
-the future; see whitepaper).
+the future; see research paper).
 
 
 Only 1 cipher suite supported
@@ -85,23 +85,32 @@ ACKed by the Application Data response by the server (TCP allows packets
 that contain data to also act as acknowledgements). This is due to the
 congestion window of the server having grown since the start of the
 connection, to a point where it will buffer multiple packets before
-sending a cummulative ACK.
+sending a cumulative ACK.
 
-In our telex_relay however, this congestion window has not grown - from
-the telex_relay perspective, it is the start of the connection, and thus
+In our Telex station however, this congestion window has not grown - from
+the Telex station perspective, it is the start of the connection, and thus
 will ACK the first packet it gets (HTTP request in Application Data).
 
 
 IP ID field
 -----------
-At the first message sent by our telex_relay process (TLS Finished
+At the first message sent by our Telex station process (TLS Finished
 message from the server), our implementation begins to use its own 
 TCP/IP stack. One of the side-effects of this is that the
 Identification field in the IP header is now populated by our TCP/IP
 stack. Since this is normally a system-wide global that is incremented 
 for each packet sent, it is possible for an adversary to observe our
-transistion. There are several defenses to this, including changing
+transition. There are several defenses to this, including changing
 our implementation to correct its IP ID per connection. For a website
 under a large amount of traffic, this type of analysis is more
 difficult, and thus makes such a website a natural choice for a
 potential notblocked.com.
+
+
+IP/TCP/SSL Options
+------------------
+Optional headers in the top three layers may be supported by the
+NotBlocked web server, and not by our Telex station. A complete
+implementation would need to detect and emulate a wide range of common
+options.
+
