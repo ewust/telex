@@ -145,9 +145,9 @@ static const felem_bytearray ptwist168_curve_params[5] = {
 /* Helper functions to convert field elements to/from internal representation */
 static void bin21_to_felem(fslice out[3], const u8 in[21])
 	{
-	out[0] = *((const uint64_t *)(in)) & 0x00ffffffffffffff;
-	out[1] = (*((const uint64_t *)(in+7))) & 0x00ffffffffffffff;
-	out[2] = (*((const uint64_t *)(in+14))) & 0x00ffffffffffffff;
+	out[0] = *((const uint64_t *)(in)) & 0x00ffffffffffffffULL;
+	out[1] = (*((const uint64_t *)(in+7))) & 0x00ffffffffffffffULL;
+	out[2] = (*((const uint64_t *)(in+14))) & 0x00ffffffffffffffULL;
 	}
 
 static void felem_to_bin21(u8 out[21], const fslice in[3])
@@ -1586,7 +1586,7 @@ void ptwist_pointmul(byte out[PTWIST_BYTES], const byte x[PTWIST_BYTES],
     int ontwist;
     static const coord three = { 3, 0, 0 };
     static const coord b =
-	    { 0x46d320e01dc7d6, 0x486ebc69bad316, 0x4e355e95cafedd };
+	    { 0x46d320e01dc7d6ULL, 0x486ebc69bad316ULL, 0x4e355e95cafeddULL };
 
 
     /* Convert the byte array to a coord */

@@ -13,10 +13,10 @@ rserv: rserv.o ptwist168.o
 	g++ -g -o $@ $^
 
 rclient: rclient.o ptwist168.o
-	gcc -g -o $@ $^ -lssl
+	g++ -g -o $@ $^ -lssl
 
 genkeys: genkeys.o ptwist168.o
-	gcc -g $(CFLAGS) -o $@ $^ -lssl -lcrypto
+	g++ -g $(CFLAGS) -o $@ $^ -lssl -lcrypto
 
 .PHONY: clean
 clean:
