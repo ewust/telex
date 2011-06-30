@@ -18,10 +18,26 @@ The default public key we have included in the telex-client directory
 (pubkey) will allow the client to be used as an HTTP proxy, when used with
 our demonstration ISP (e.g. NotBlocked.telex.cc).
 
+
+RUNNING TELEX
+--------------------------
+After installing Telex, run the client binary:
+
+./telex_client notblocked.telex.cc
+
+To use Telex with your browser, change your browser's settings to use an
+HTTP(S) proxy of 127.0.0.1 port 8888.
+
+Note that we have limitted the Telex proxy access to only a few websites
+listed below in order to limit potential abuse:
+
+    google.com
+    telex.cc
+    twitter.com
+    youtube.com
+
 --------------------------
 NOTE:
 This software is a proof-of-concept, and does NOT provide strong security.
 It is a research prototype only intended to be used for experimental
 purposes.
-
-
