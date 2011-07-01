@@ -27,7 +27,7 @@ Tarballs in your MSYS home directory:
     cd $HOME/telex/
     tar xf ../openssl-1.0.0d.tar.gz
     cd openssl-1.0.0d
-    patch -p1 < ../telex/telex-client/openssl-1.0.0d-telex.patch
+    patch -p1 < ../telex-client/openssl-1.0.0d-telex.patch
     ./config no-shared no-hw no-asm --prefix=$HOME/telex/local/ --openssldir=$HOME/telex/local/
     make
     make install

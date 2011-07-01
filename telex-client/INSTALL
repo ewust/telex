@@ -18,7 +18,7 @@ Tarballs in your $HOME directory:
     mkdir $HOME/telex
     mkdir $HOME/telex/local
     cd $HOME/telex
-    tar zxf telex-client.tar.gz
+    tar zxf ../telex-client.tar.gz
 
 # Building required libraries:
 
@@ -26,7 +26,7 @@ Tarballs in your $HOME directory:
     cd $HOME/telex/
     tar xf ../openssl-1.0.0d.tar.gz
     cd openssl-1.0.0d
-    patch -p1 < ../telex/telex-client/openssl-1.0.0d-telex.patch
+    patch -p1 < ../telex-client/openssl-1.0.0d-telex.patch
     ./config --shared --prefix=$HOME/telex/local/ --openssldir=$HOME/telex/local/
     make
     make install # no root (sudo) needed for local install
@@ -52,7 +52,7 @@ Tarballs in your $HOME directory:
 # Building telex-client:
 
     cd $HOME/telex/telex-client/
-    make    # creates telex-client binary
+    make    
 
 # Running telex-client: 
 
