@@ -124,9 +124,10 @@ int main(int argc, char *argv[])
 	}
       }
 
-		printf("CAUTION: This proof-of-concept DOES *NOT* PROVIDE STRONG SECURITY !!\n");
-		printf("         It is a research prototype and UNSAFE FOR REAL-WORLD USE !!\n");
-		printf("         See ISSUES for further information.\n");
+		printf("WARNING: This software is an experimental prototype intended for\n");
+        printf("         researchers. It does not provide strong security and is\n");
+        printf("         UNSAFE FOR REAL-WORLD USE. For details of current limitations\n");
+        printf("         of our proof-of-concept, please see telex-client/ISSUES.\n");
 
       ret = telex_client(lport->ival[0], port, debug->ival[0], hstr, key->sval[0], certdb->sval[0]);
     }
