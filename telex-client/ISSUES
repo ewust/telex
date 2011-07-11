@@ -21,8 +21,17 @@ It is suspicious behavior if a user used to visit ~100 websites a day, and
 then suddenly starts visiting only 1 of them, several hundred times a day.
 
 
-DNS lookups fail to mimic browsers
-----------------------------------
+Browser mimicry
+---------------
+A production telex-client would need to mimic the behavior of popular web
+browsers in order to remain undetected. There are several sub-issues that
+fall under this class; we describe two here.
+
+It might be easier to solve these problems by pushing the telex-client
+functionality into the web browser itself (perhaps as an addon), rather
+than providing a second process that must behave like the web browser.
+
+== DNS lookups ==
 Our client uses libevent to perform DNS lookups of the NotBlocked domain.
 Libevent appears to use 0x20-bit encoding, a known defense against DNS
 Forgery. This behavior is observable to the censor, and may differ from
@@ -30,6 +39,19 @@ the popular web browsers telex-client attempts to mimic.
 
 Furthermore, DNS lookups from telex-client and libevent may have
 observably different caching or pinning mechanisms than web browsers.
+
+== TCP timeouts ==
+Web browsers not using Telex will timeout connections that do not
+succesfully send data after a certain period of time (e.g. ACK is not
+recieved for sent data). Our client will ACK data from local web browsers,
+even if our client does not receive an ACK from the telex-client to
+"notblocked" connection. Thus, neither the browser nor telex-client will
+timeout the connection.
+
+This would allow an attacker to drop a suspected flow, and observe if the
+client continues to attempt to send data (TCP retransmits) after a normal
+browser would have timed the connection out. If it does, this is evidence
+of a client using our telex-client instead of a web browser.
 
 
 OpenSSL version
