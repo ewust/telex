@@ -1,5 +1,5 @@
-INCLUDE=-I../local/include
-LIB=-L../local/lib
+INCLUDE=-I./req/local/include
+LIB=-L./req/local/lib
 
 # Uncomment these 2 lines if you installed openssl/libevent 
 # to the default location /usr/local (e.g. no ./configure --prefix=)

@@ -1,59 +1,19 @@
-Building telex-client on Linux
-==============================
-# Tested on a 64-bit ubuntu 10.04 ec2-micro instance
-# non-root build; must already have build-essential installed.
+Installing telex-client
+-----------------------
 
-# Prerequisites:
-C/C++ compiler  # gcc/g++ (sudo apt-get install build-essential)
-Patch utility
-Tarballs in your $HOME directory:
-    telex-client.tar.gz
-    http://www.openssl.org/source/openssl-1.0.0d.tar.gz
-    http://monkey.org/~provos/libevent-2.0.12-stable.tar.gz
-    http://prdownloads.sourceforge.net/argtable/argtable2-13.tar.gz
-    
+After extracting this directory, install the prerequisite libraries
+(OpenSSL modified for Telex, libevent, libargtable) by running:
 
-# Setting up:    
+./prereq.sh
 
-    mkdir $HOME/telex
-    mkdir $HOME/telex/local
-    cd $HOME/telex
-    tar zxf ../telex-client.tar.gz
+This script will pull sources from the respective project webpages, and
+build local installs of each to the current working directory (./reqs).
+After installing the prerequisites, simply run (from telex-client
+directory):
 
-# Building required libraries:
+make
 
-    # patched OpenSSL
-    cd $HOME/telex/
-    tar xf ../openssl-1.0.0d.tar.gz
-    cd openssl-1.0.0d
-    patch -p1 < ../telex-client/openssl-1.0.0d-telex.patch
-    ./config --shared --prefix=$HOME/telex/local/ --openssldir=$HOME/telex/local/
-    make
-    make install # no root (sudo) needed for local install
+Running telex-client
+--------------------
 
-    # libevent2, linked against patched OpenSSL
-    cd $HOME/telex/
-    tar xf ../libevent-2.0.12-stable.tar.gz 
-    cd libevent-2.0.12-stable
-    LDFLAGS="-L$HOME/telex/local/lib" && export LDFLAGS
-    CFLAGS="-I$HOME/telex/local/include" && export CFLAGS
-    ./configure --prefix=$HOME/telex/local
-    make
-    make install 
-
-    # argtable 2 (libargtable2-dev)
-    cd $HOME/telex/
-    tar xf ../argtable2-13.tar.gz
-    cd argtable2-13
-    ./configure --prefix=$HOME/telex/local
-    make
-    make install
-    
-# Building telex-client:
-
-    cd $HOME/telex/telex-client/
-    make    
-
-# Running telex-client: 
-
-    LD_LIBRARY_PATH=$HOME/telex/local/lib ./telex-client notblocked.telex.cc
+LD_LIBRARY_PATH=./req/local/lib ./telex-client notblocked.telex.cc
