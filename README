@@ -1,13 +1,13 @@
 Telex Anticensorship system
 ---------------------------
 
-Telex is a new approach to resisting network-based censorship, allowing
-people access to websites that are blocked by their ISP or government.
-Unlike traditional proxies, Telex is deployed in the network, at friendly
-ISPs outside of the censor's control. Telex can convert innocuous-looking
-connections that pass through these ISPs into connections to an uncensored
-proxy server. Because of its position in the network, Telex has no IP
-address for censors to block. 
+Telex is a new approach to circumventing Internet censorship that is
+intended to help citizens of repressive governments access online services
+and information freely. It involves placing anticensorship technology into
+the Internet's core network infrastructure, through cooperation from large
+ISPs. Telex can convert innocuous-looking connections that pass through
+these ISPs into connections to a proxy server. Because of its position in
+the network, Telex has no IP address for censors to block. 
 
 Telex consists of two parts: a Telex station at the friendly ISP, and a 
 telex-client that runs on the user's system. We have created a
@@ -19,9 +19,10 @@ For more information, see our website https://telex.cc
 telex-client
 --------------------------
 
-The telex client acts as a TCP tunnel for any socket that connects to it.
-For our demonstration, we have configured it to tunnel to an HTTP proxy
-running on the Telex station.
+The Telex client program accepts TCP connections from other software on
+the local machine and tunnels them to services offered by the Telex
+station. For our demonstration, we have configured the Telex station to
+provide HTTP proxy service.
 
 To build the telex-client from source, see the INSTALL file in the
 telex-client directory.
@@ -29,9 +30,13 @@ telex-client directory.
 
 Running telex-client
 --------------------------
-After installing Telex, run the client binary:
+After installing Telex, run the client binary from the telex-client
+directory (from a command prompt):
 
-./telex-client notblocked.telex.cc
+LD_LIBRARY_PATH=./req/local/lib ./telex-client notblocked.telex.cc
+
+Or for Windows:
+    telex-client notblocked.telex.cc
 
 To use Telex with your browser, change your browser's settings to use an
 HTTP(S) proxy of 127.0.0.1 port 8888.
