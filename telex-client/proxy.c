@@ -20,6 +20,11 @@
 #include <arpa/inet.h>
 #endif
 
+#ifdef __FreeBSD__
+#include <arpa/inet.h>  
+#include <netinet/in.h> 
+#endif
+
 #include "logger.h"
 #include "proxy.h"
 #include "ssl.h"
@@ -67,7 +72,7 @@ struct telex_state *StateInit(struct telex_conf *conf)
 // the structure!
 void StateCleanup(struct telex_state **_state)
 {
-	if (!_state || !_state)
+	if (!_state || !*_state)
 		return;	
 	struct telex_state *state = *_state;
 	*_state = NULL;

@@ -5,18 +5,18 @@ TARGETS=tag.o ptwist168.o genkeys
 all: $(TARGETS)
 
 ptwist168: ptwist168.cpp
-	g++ $(CFLAGS) -DTESTING -o $@ $^
+	$(CXX) $(CFLAGS) -DTESTING -o $@ $^
 
 rserv.o rclient.o genkeys.o ptwist168.o tag.o:: ptwist.h
 
 rserv: rserv.o ptwist168.o
-	g++ -g -o $@ $^
+	$(CXX) -g -o $@ $^
 
 rclient: rclient.o ptwist168.o
-	g++ -g -o $@ $^ -lssl
+	$(CXX) -g -o $@ $^ -lssl
 
 genkeys: genkeys.o ptwist168.o
-	g++ -g $(CFLAGS) -o $@ $^ -lssl -lcrypto
+	$(CXX) -g $(CFLAGS) -o $@ $^ -lssl -lcrypto
 
 .PHONY: clean
 clean:

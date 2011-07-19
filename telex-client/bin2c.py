@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 # Converts binary files into C arrays
 # usage: bin2c.py fileA varA [fileB varB] ...

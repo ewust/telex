@@ -1,11 +1,18 @@
-#!/bin/bash
+#!/bin/sh
 
 TELEX_HOME=`pwd`
 cd $TELEX_HOME
 
-wget http://www.openssl.org/source/openssl-1.0.0d.tar.gz
-wget http://monkey.org/~provos/libevent-2.0.12-stable.tar.gz
-wget http://prdownloads.sourceforge.net/argtable/argtable2-13.tar.gz
+__exists() {
+	which $1 1>/dev/null 2>&1
+}
+
+get="fetch";
+! __exists fetch && get="wget";
+
+$get http://www.openssl.org/source/openssl-1.0.0d.tar.gz
+$get http://monkey.org/~provos/libevent-2.0.12-stable.tar.gz
+$get http://prdownloads.sourceforge.net/argtable/argtable2-13.tar.gz
     
 # Setting up:
     mkdir -p $TELEX_HOME/req/local

@@ -6,8 +6,8 @@ LIB=-L./req/local/lib
 #INCLUDE=-I/usr/local/ssl/include -I/usr/local/include
 #LIB=-L/usr/local/ssl/lib -L/usr/local/lib
 
-CFLAGS=-O3 -Wall $(INCLUDE)
-LDFLAGS=$(LIB) -lssl -lcrypto -levent_core -levent_extra -levent_openssl -largtable2
+CFLAGS+=-O3 -Wall $(INCLUDE)
+LDFLAGS+=$(LIB) -lssl -lcrypto -levent_core -levent_extra -levent_openssl -largtable2
 
 OBJS=listener.o logger.o proxy.o ssl.o util.o client.o tag/tag.o tag/ptwist168.o
 TARGETS=telex-client
@@ -18,7 +18,7 @@ tag/*.o:
 	$(MAKE) -C tag $@
 
 telex-client: $(OBJS)
-	g++ -o $@ $(CFLAGS) $^ $(LDFLAGS)
+	$(CXX) -o $@ $(CFLAGS) $^ $(LDFLAGS)
 
 .PHONY: clean
 clean:	
