@@ -18,7 +18,7 @@ tag/*.o:
 	$(MAKE) -C tag $@
 
 telex-client: $(OBJS)
-	$(CC) -o $@ $(CFLAGS) $^ $(LDFLAGS)
+	$(CXX) -o $@ $(CFLAGS) $^ $(LDFLAGS)
 
 .PHONY: clean
 clean:	
