@@ -8,6 +8,11 @@
 #include <string.h>
 #include <errno.h>
 
+#ifdef __FreeBSD__
+#include <arpa/inet.h>  
+#include <netinet/in.h> 
+#endif
+
 #include "listener.h"
 #include "util.h"
 #include "logger.h"
@@ -25,7 +30,7 @@ int InitAndListenLoop(int port, evconnlistener_cb accept_cb, struct telex_conf *
 	WSADATA WSAData;
 	WSAStartup(0x101, &WSAData);
 #endif
-
+	
 	struct event_base *base;
 	base = event_base_new();
 	if (!base) {

@@ -20,6 +20,11 @@
 #include <arpa/inet.h>
 #endif
 
+#ifdef __FreeBSD__
+#include <arpa/inet.h>  
+#include <netinet/in.h> 
+#endif
+
 #include "logger.h"
 #include "proxy.h"
 #include "ssl.h"
