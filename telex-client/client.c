@@ -18,7 +18,7 @@
 #include "logger.h"
 #include "ssl.h"
 
-int telex_client(int listen_port, int remote_port, int debug_level, const char *remote_host, 
+static int telex_client(int listen_port, int remote_port, int debug_level, const char *remote_host, 
 		 const char *keyfile, const char *cafile)
 {
 	if (debug_level >= 0) {

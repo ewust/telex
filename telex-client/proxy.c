@@ -51,7 +51,7 @@ int __ref_SSL = 0;
 	LogTrace("proxy", "%s -- : %d", #_resource, __ref_##_resource);
 
 // Allocate and initialize tunnel connection State object
-struct telex_state *StateInit(struct telex_conf *conf)
+static struct telex_state *StateInit(struct telex_conf *conf)
 {
 	struct telex_state *state;
 	_inc(STATE); state = calloc(1, sizeof(struct telex_state));
@@ -70,7 +70,7 @@ struct telex_state *StateInit(struct telex_conf *conf)
 // and free State object itself.
 // Please add cleanup code here if you extend
 // the structure!
-void StateCleanup(struct telex_state **_state)
+static void StateCleanup(struct telex_state **_state)
 {
 	if (!_state || !*_state)
 		return;	
@@ -112,9 +112,11 @@ void StateCleanup(struct telex_state **_state)
 
 // Finish what proxy_accept_cb started - but now we know the 
 // notblocked_host's ip (server_ip). 
-void proxy_notblocked_getaddrinfo_cb(int result, struct evutil_addrinfo *ai,
+static void proxy_notblocked_getaddrinfo_cb(int result, struct evutil_addrinfo *ai,
                                      struct telex_state *state)
 {
+    (void) result; // suppress warning on unused param
+
     assert(state != NULL);
     if (ai == NULL) {
         LogError(state->name, "Lookup of notblocked failed (do you have Internet?)");
@@ -164,6 +166,10 @@ void proxy_accept_cb(struct evconnlistener *listener, evutil_socket_t fd,
                      struct sockaddr *address, int socklen,
                      struct telex_conf *conf)
 {	
+
+    (void) address;
+    (void) socklen;    // suppress warning on unused param
+
 	LogTrace("proxy", "ACCEPT");
 
 	// Init connection state
@@ -201,10 +207,10 @@ void proxy_accept_cb(struct evconnlistener *listener, evutil_socket_t fd,
     // TODO: check return, _inc(???) 
     LogTrace(state->name, "Resolving %s", conf->notblocked_host);
     evutil_getaddrinfo_async(conf->dns_base, conf->notblocked_host,
-                portbuf, &hint, proxy_notblocked_getaddrinfo_cb, state);
+                portbuf, &hint, 
+        (void (*)(int, struct evutil_addrinfo *, void *)) proxy_notblocked_getaddrinfo_cb, state);
 
 }
-
 #define ISLOCAL(bev, state) ((bev) == (state)->local)
 #define ISREMOTE(bev, state) ((bev) == (state)->remote)
 #define PARTY(bev, state) (ISLOCAL((bev),(state)) ? "local" : \

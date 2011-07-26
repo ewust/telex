@@ -22,7 +22,7 @@ void address_to_string(struct sockaddr_in *sin, char *output, int outlen)
 }
 
 // Returns milliseconds in unix epoch
-unsigned long long time_ms()
+unsigned long long time_ms(void)
 {
 	struct timeval now;	
 	gettimeofday(&now, NULL);	

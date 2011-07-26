@@ -11,6 +11,14 @@
 #error "This version of Libevent is not supported; Get 2.0.1-alpha or later."
 #endif
 
+// Should be in a libevent header; is not
+int
+evutil_getaddrinfo_async(struct evdns_base *dns_base,
+    const char *nodename, const char *servname,
+    const struct evutil_addrinfo *hints_in,
+    void (*cb)(int, struct evutil_addrinfo *, void *), void *arg);
+
+
 // We've accepted a connection for proxying...
 // Establish a connection to server specified in conf
 // and set up events to relay traffic in both directions.

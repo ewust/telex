@@ -1,4 +1,4 @@
-CFLAGS=-g -O3 -Wall -I$(INCLUDE) -L$(LIB)
+CFLAGS=-g -O3 -Wall -fPIC -I$(INCLUDE) -L$(LIB)
 
 TARGETS=tag.o ptwist168.o genkeys
 

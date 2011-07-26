@@ -13,14 +13,14 @@
 
 static enum LogLevel log_output_level = LOG_INFO;
 static FILE *log_output_stream = NULL;
-static char *log_level_name[] = 
+static const char *log_level_name[] = 
   { "FATAL", "ERROR", "WARN ", "INFO ", "DEBUG", "TRACE" };
 
 int LogLogVA(enum LogLevel level, const char *loggerName, const char *logMessage, va_list args)
 {	
 	if (log_output_stream && level <= log_output_level) {
-		char *levelName;		
-		if (level < 0 || level >= sizeof(log_level_name)) {
+		const char *levelName;		
+		if (level >= sizeof(log_level_name)) {
 			levelName = "UNKNOWN";
 		} else {
 			levelName = log_level_name[level];
