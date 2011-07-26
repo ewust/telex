@@ -70,11 +70,11 @@ int ssl_init(struct telex_conf *conf)
 		return -1;
 	}
 
-#if (OPENSSL_VERSION_NUMBER < 0x00905100L)
-	LogInfo("ssl", "Older version; setting SSL_CTX_set_verify_depth");
-	SSL_CTX_set_verify_depth(conf->ssl_ctx,1);
-#endif
+	SSL_CTX_set_verify_depth(conf->ssl_ctx,3);
     
+    // TODO: make callback for cert failure
+    SSL_CTX_set_verify(conf->ssl_ctx, SSL_VERIFY_PEER, NULL);
+
 	// Tag
 	tag_init();
 #ifdef PUBKEY_DATA_
