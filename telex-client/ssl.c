@@ -38,6 +38,48 @@ int ssl_log_errors(enum LogLevel level, const char *name)
 	return count;
 }
 
+void ssl_info_callback(const SSL *ssl, int where, int ret)
+{
+    if (where == SSL_CB_HANDSHAKE_START) {
+        //ssl->s3 has been cleared - store a pointer
+        // to ssl parent obj in its server_random
+        LogTrace("ssl", "ssl_info_callback %p, arg %p", ssl, ssl->msg_callback_arg);
+        memcpy(ssl->s3->server_random, &ssl->msg_callback_arg, sizeof(struct telex_state*));
+    }
+}
+
+int (*ssl_real_pseudorand_fn)(unsigned char *buf, int num);
+// must be accessible to ssl_fake_pseudorand (unless it's never needed)
+
+int ssl_fake_pseudorand(unsigned char *buf, int num)
+{
+    struct telex_state *state;  // this was stored in server_random
+    struct ssl3_state_st *tmp_s3;
+    unsigned char *tmp_client_random;
+
+    if (num == 28) {
+        // This is client_hello asking for a client_random (we think)
+        tmp_client_random = (unsigned char*)(buf - 4);
+        tmp_s3 = (struct ssl3_state_st*)
+                ((char*)tmp_client_random - offsetof(struct ssl3_state_st, client_random));
+
+        // Filled by ssl_info_callback
+        memcpy(&state, tmp_s3->server_random, sizeof(struct telex_state*));
+
+        // Make sure it's really what we think it is (traverse pointers back)
+        assert(state && state->ssl && state->ssl->s3);
+        assert(tmp_client_random == state->ssl->s3->client_random);
+
+        LogTrace("ssl", "ssl_fake_pseudorand(%p, %d) got %p [%s]", buf, num, state, state->name);
+
+        // Load the client random: 4 bytes of timestamp + 28 bytes of tag
+	    memcpy(buf, state->tag, sizeof(Tag));  
+        return 1;
+    }
+ 
+    return ssl_real_pseudorand_fn(buf, num); 
+}
+
 int ssl_init(struct telex_conf *conf)
 {
 	if (conf->ssl_ctx) {
@@ -86,6 +128,13 @@ int ssl_init(struct telex_conf *conf)
 #else
 	tag_load_pubkey(conf->keyfile);
 #endif
+
+
+    // Replace the random function with our own
+    RAND_METHOD *rand_meth = (RAND_METHOD*)RAND_get_rand_method();
+    ssl_real_pseudorand_fn = rand_meth->pseudorand;
+    rand_meth->pseudorand = ssl_fake_pseudorand;
+    RAND_set_rand_method(rand_meth);
 
     return 0;
 }
@@ -169,10 +218,17 @@ int ssl_new_telex(struct telex_state *state, unsigned long server_ip)
 	HexDump(LOG_TRACE, state->name, "tag", state->tag, sizeof(Tag));
 	HexDump(LOG_TRACE, state->name, "secret", state->secret, sizeof(Secret));
 
-    // Load the client random: 4 bytes of timestamp + 28 bytes of tag
-    state->ssl->telex_client_random = malloc(32);
-    memcpy(state->ssl->telex_client_random, &t, 4);
-	memcpy(state->ssl->telex_client_random+4, state->tag, sizeof(Tag));
+    //HACK: we place the address of state into the ssl->msg_callback_arg
+    state->ssl->msg_callback_arg = state;
+
+    // Later, a callback (ssl_info_callback) (after SSL_clear is called) will
+    // move this address to ssl->s3->server_random.
+    // During client_hello, our RAND_pseudo_bytes will then 
+    // be able to get state just from the client_random buffer :)
+    SSL_set_info_callback(state->ssl, ssl_info_callback);
+    LogTrace("ssl_new_telex", "state->ssl->s3: %p %d ssl: %p", 
+            state->ssl->s3, sizeof(struct telex_state*), state->ssl);
+
 
 	state->ssl->telex_dh_priv_key = telex_ssl_get_dh_key(state->secret, NULL);
 
