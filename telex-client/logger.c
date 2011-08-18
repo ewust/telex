@@ -112,7 +112,7 @@ void HexDump(enum LogLevel level, const char *loggerName, const char *message, v
 	p += strlen(p);
 	for (i = 0; i < len; i += 16) {
 		for (j = i; j < i+16 && j < len; j++) {
-			snprintf(p, 3, "%02X ", (unsigned char)data[j]);
+			snprintf(p, 4, "%02X ", (unsigned char)data[j]);
 			p += 3;
 		}
 		for (; j < i+16 + 1; j++) {
