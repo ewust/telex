@@ -25,5 +25,9 @@ int ssl_new_telex(struct telex_state *state, unsigned long server_ip);
 // Performs post-connection Telex stage on connection state->ssl.
 // Returns 0 on successful Telex connection; nonzero otherwise.
 int ssl_connected_telex(struct telex_state *state);
+
+// Creates a new Diffie-Hellman private key parameter (or fills res
+// if non-NULL) based off the tag secret, using a PRG
+BIGNUM *telex_ssl_get_dh_key(Secret state_secret, BIGNUM *res);
 	
 #endif//_TELEXSSL_H_

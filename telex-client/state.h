@@ -66,6 +66,7 @@ struct telex_state
 	SSL *ssl;
 	Tag tag;
 	Secret secret;	
+    BIGNUM *hack_tmp_g;
 };
 
 #endif//_STATE_H_
