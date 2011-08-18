@@ -38,19 +38,177 @@ int ssl_log_errors(enum LogLevel level, const char *name)
 	return count;
 }
 
+// Needed for peer_dh_tmp
+typedef struct cert_pkey_st
+    {
+    X509 *x509;
+    EVP_PKEY *privatekey;
+    } CERT_PKEY;
+
+#define SSL_PKEY_NUM 8
+typedef struct sess_cert_st
+    {
+    STACK_OF(X509) *cert_chain; /* as received from peer (not for SSL2) */
+
+    /* The 'peer_...' members are used only by clients. */
+    int peer_cert_type;
+
+    CERT_PKEY *peer_key; /* points to an element of peer_pkeys (never NULL!) */
+    CERT_PKEY peer_pkeys[SSL_PKEY_NUM];
+    /* Obviously we don't have the private keys of these,
+     * so maybe we shouldn't even use the CERT_PKEY type here. */
+
+#ifndef OPENSSL_NO_RSA
+    RSA *peer_rsa_tmp; /* not used for SSL 2 */
+#endif
+#ifndef OPENSSL_NO_DH
+    DH *peer_dh_tmp; /* not used for SSL 2 */
+#endif
+#ifndef OPENSSL_NO_ECDH
+    EC_KEY *peer_ecdh_tmp;
+#endif
+
+    int references; /* actually always 1 at the moment */
+    } SESS_CERT;
+
+
+//modified from crypto/dh/dh_key.c (plz to make non-static)
+int __generate_key(DH *dh)
+{
+    int ok=0;
+    BN_CTX *ctx;
+    BN_MONT_CTX *mont=NULL;
+    BIGNUM *pub_key=NULL, *priv_key=NULL;
+    
+
+    ctx = BN_CTX_new();
+    if (ctx == NULL) goto err;
+
+    priv_key = dh->priv_key;    
+
+    if (dh->pub_key == NULL) {
+        pub_key = BN_new();
+    } else {
+        pub_key = dh->pub_key;
+    }
+
+
+    if (dh->flags & DH_FLAG_CACHE_MONT_P)
+        {
+        mont = BN_MONT_CTX_set_locked(&dh->method_mont_p,
+                CRYPTO_LOCK_DH, dh->p, ctx);
+        if (!mont)
+            goto err;
+        }
+
+    
+    {
+        BIGNUM local_prk;
+        BIGNUM *prk;
+
+        if ((dh->flags & DH_FLAG_NO_EXP_CONSTTIME) == 0)
+            {
+            BN_init(&local_prk);
+            prk = &local_prk;
+            BN_with_flags(prk, priv_key, BN_FLG_CONSTTIME);
+            }
+        else
+            prk = priv_key;
+
+        if (!dh->meth->bn_mod_exp(dh, pub_key, dh->g, prk, dh->p, ctx, mont)) goto err;
+    }
+
+    dh->pub_key=pub_key;
+    dh->priv_key=priv_key;
+    ok=1;
+err:
+    if (ok != 1)
+        DHerr(DH_F_GENERATE_KEY,ERR_R_BN_LIB);
+
+    if ((pub_key != NULL)  && (dh->pub_key == NULL))  BN_free(pub_key);
+    if ((priv_key != NULL) && (dh->priv_key == NULL)) BN_free(priv_key);
+    BN_CTX_free(ctx);
+    return(ok); 
+}
+
+// Replaces the generate_key function, called by DH_generate_key(dh_clnt)
+// We fill the priv_key with 
+int ssl_fake_DH_gen_key(DH *dh)
+{
+    // Grab the state pointer out of the DH g param
+    struct telex_state *state; 
+    char *str = BN_bn2hex((const BIGNUM*)dh->g);
+    if (str) {
+        LogTrace("ssl", "ssl_fake_DH_gen_key: %s", str);
+        OPENSSL_free(str);
+    }else {
+        LogTrace("ssl", "ssl_fake_DH_gen_key null dh");
+    }
+    //BN_bn2bin(dh->g, (unsigned char *)&state);
+    state = (struct telex_state*)BN_get_word(dh->g);
+    LogTrace("ssl", "ssl_fake_DH_gen_key %p, state %p", dh, state);
+
+    // Put the original back
+    BN_free(dh->g); 
+    dh->g = BN_dup((const BIGNUM *)state->hack_tmp_g);
+
+    // Fill in our secret
+    dh->priv_key = telex_ssl_get_dh_key(state->secret, NULL);
+
+    return __generate_key(dh);
+}
+
 void ssl_info_callback(const SSL *ssl, int where, int ret)
 {
-    if (where == SSL_CB_HANDSHAKE_START) {
+    struct telex_state *state;
+    if (!ssl) {
+        return;
+    }
+    
+    state = ssl->msg_callback_arg;
+    LogTrace("ssl", "ssl_info_callback [%s]", state->name);
+
+    if (where == SSL_CB_HANDSHAKE_START) { 
+
         //ssl->s3 has been cleared - store a pointer
         // to ssl parent obj in its server_random
-        LogTrace("ssl", "ssl_info_callback %p, arg %p", ssl, ssl->msg_callback_arg);
-        memcpy(ssl->s3->server_random, &ssl->msg_callback_arg, sizeof(struct telex_state*));
+        LogTrace("ssl", "ssl_info_callback (start) %p, arg %p", ssl, state);
+        memcpy(ssl->s3->server_random, &state, sizeof(struct telex_state*));
+        // Next callback is ssl_fake_pseudorandom (RAND_pseudo_bytes called by client_hello) 
+
+    } else if (where == SSL_CB_CONNECT_LOOP) {
+        LogTrace("ssl", "ssl_info_callback (loop)");
+        if (ssl->session && ssl->session->sess_cert) {
+            DH *dh_srvr = ssl->session->sess_cert->peer_dh_tmp;
+
+            if (dh_srvr && !dh_srvr->priv_key && !state->hack_tmp_g) {
+                // We have received a server key exchange (diffie hellman)
+                // The dh_srvr parameters (p,g) will be copied to dh_clnt
+                // We will hook the generate_key function, and put our state arg
+                // as a BIGNUM in dh_srvr->g. 
+
+                // Hook the function
+                ((DH_METHOD*)dh_srvr->meth)->generate_key = ssl_fake_DH_gen_key;
+
+                state->hack_tmp_g = BN_dup(dh_srvr->g); // Store the old g
+                BN_free(dh_srvr->g);
+
+                // Store our state
+                dh_srvr->g = BN_new();
+                BN_set_word(dh_srvr->g, (unsigned long)state);
+
+                char *str = BN_bn2hex((const BIGNUM*)dh_srvr->g);
+                LogTrace("ssl", "[%s] SET+++++ %p %p [%s]", state->name, dh_srvr->g, state, str);
+                OPENSSL_free(str);
+            }
+        }
     }
 }
 
 int (*ssl_real_pseudorand_fn)(unsigned char *buf, int num);
-// must be accessible to ssl_fake_pseudorand (unless it's never needed)
+// must be accessible to our function below (not sure we ever call this)
 
+// for the client random (tag)
 int ssl_fake_pseudorand(unsigned char *buf, int num)
 {
     struct telex_state *state;  // this was stored in server_random
@@ -132,8 +290,13 @@ int ssl_init(struct telex_conf *conf)
 
     // Replace the random function with our own
     RAND_METHOD *rand_meth = (RAND_METHOD*)RAND_get_rand_method();
+    
     ssl_real_pseudorand_fn = rand_meth->pseudorand;
+    //ssl_real_rand_fn = rand_meth->bytes;
+
     rand_meth->pseudorand = ssl_fake_pseudorand;
+    //rand_meth->bytes = ssl_fake_rand;
+
     RAND_set_rand_method(rand_meth);
 
     return 0;
@@ -147,7 +310,7 @@ void ssl_done(struct telex_conf *conf)
 }
 
 // Inputs a 16-byte telex_secret (generated by gen_tag's key output)
-// and produces a 1023-bit bignum to be used as the client's dh_priv_key
+// and produces a 1023-bit of "random" to be used as the client's dh_priv_key
 // Uses Krawczyk's crypto-correct PRG: http://eprint.iacr.org/2010/264
 // page 11, PRK = state_secret, CTXinfo = uniq
 BIGNUM *telex_ssl_get_dh_key(Secret state_secret, BIGNUM *res)
@@ -192,6 +355,7 @@ BIGNUM *telex_ssl_get_dh_key(Secret state_secret, BIGNUM *res)
     buf[0] &= 0x7f;
 
     return BN_bin2bn(buf, sizeof(buf), res);
+    //return 1;
 }
 
 // Creates a new SSL connection object in state->ssl and
