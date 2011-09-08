@@ -1,0 +1,106 @@
+There are two parts to our OpenSSL patch (see patch below):
+    - set the client_random in the ClientHello message to 28 bytes of our tag
+    - set the dh_clnt->priv_key to our shared secret with Telex
+
+Setting client_random
+---------------------
+To do this without modifying OpenSSL, I defined my own version of
+int RAND_pseudo_bytes(unsigned char *buf, int num);
+that fills buf with a tag instead of random when num==28.
+
+In order to keep track of which connection this corresponds to (so that later
+I can fill in the corresponding dh_clnt->priv_key), I wanted to pass in
+essentially a void *arg of some sort. Of course, this function only gives me a
+buffer and length, so ugly hack:
+
+When we create the SSL object (SSL_new()), I set its msg_callback_arg to our
+void *arg. I hook the info_callback, so that I can receive this object at
+SSL_CB_HANDSHAKE_START (note: this is AFTER SSL_Clear() has been called by the
+ssl3_connect function). Then, I move the pointer from msg_callback_arg to 
+the ssl->s3->server_random buffer (can't do this before, because SSL_Clear()
+will zero it). 
+
+Finally, my RAND_pseudo_bytes function is called. Since buf is actually an 
+offset into the client_random in the s3 struct, I can use offsetof to get the 
+struct address, which allows me to get the server_random containing my 
+void *arg.
+
+
+
+Setting the Diffie-Hellman client private key
+---------------------------------------------
+This one is a bit uglier.
+
+Using the same info_callback, (this time at SSL_CB_CONNECT_LOOP), I check to
+see if ssl->session->sess_cert->peer_dh_tmp is set (see **note).  This is
+where OpenSSL temporarily stores the server's Diffie-Hellman parameter between
+the server key exchange and the client key exchange.
+
+The two parameters filled in on this dh_srvr object are two BIGNUM pointers:
+the generator g (almost always 2), and prime modulus p. 
+
+I overwrite dh_srvr->g with a BIGNUM with the value of my void *arg 
+(it gets "better", i swear :)). I set the generate_key method for DH objects
+to my own function (prototype: int generate_key(DH *dh);). 
+
+Before generate_key is called, OpenSSL will call 
+dh_clnt=DHparams_dup(dh_srvr), which copies the g and p parameters. Then, when
+my generate_key function is called, I extract g from the DH object, convert it
+to my void *arg, and use that to fill the appropriate private key. Finally, I
+call the real generate_key function, which does the rest (makes a pubkey etc).
+
+Note that the real generate_key function will only generate a priv_key if one
+is not already set.
+
+**accessing peer_dh_tmp requires defining a few structs that are defined only
+in ssl_locl.h: cert_pkey_st (CERT_PKEY), and sess_cert_st (SESS_CERT).
+Unfortunately, SESS_CERT has an array of SSL_PKEY_NUM in it. In OpenSSL 0.9.8,
+this is 6. In OpenSSL 1.0.0, this is 8. I supposed I can do some #ifdefing to
+get around this, but this is just one example of the flimsyness of this whole
+hack.
+
+Original OpenSSL patch:
+
+
+diff -ur openssl-1.0.0d/ssl/s3_clnt.c openssl-1.0.0d-telex/ssl/s3_clnt.c
+--- openssl-1.0.0d/ssl/s3_clnt.c	2010-12-02 13:24:54.000000000 -0500
++++ openssl-1.0.0d-telex/ssl/s3_clnt.c	2011-06-16 01:33:54.369872999 -0400
+@@ -640,6 +640,10 @@
+ 		s->client_version=s->version;
+ 
+ 		/* Random stuff */
++        if (s->telex_client_random) {
++            memcpy(s->s3->client_random,
++                   s->telex_client_random, SSL3_RANDOM_SIZE);
++        }
+ 		memcpy(p,s->s3->client_random,SSL3_RANDOM_SIZE);
+ 		p+=SSL3_RANDOM_SIZE;
+ 
+@@ -2240,6 +2244,7 @@
+ 				SSLerr(SSL_F_SSL3_SEND_CLIENT_KEY_EXCHANGE,ERR_R_DH_LIB);
+ 				goto err;
+ 				}
++            dh_clnt->priv_key = s->telex_dh_priv_key; // If this is null, generate_key will give us 1023 bits random.
+ 			if (!DH_generate_key(dh_clnt))
+ 				{
+ 				SSLerr(SSL_F_SSL3_SEND_CLIENT_KEY_EXCHANGE,ERR_R_DH_LIB);
+diff -ur openssl-1.0.0d/ssl/ssl.h openssl-1.0.0d-telex/ssl/ssl.h
+--- openssl-1.0.0d/ssl/ssl.h	2010-01-06 12:37:38.000000000 -0500
++++ openssl-1.0.0d-telex/ssl/ssl.h	2011-06-16 01:39:09.139873003 -0400
+@@ -968,6 +968,16 @@
+ 	 */
+ 	int version;
+ 	int type; /* SSL_ST_CONNECT or SSL_ST_ACCEPT */
++	
++	char *telex_client_random; /* used when sending the client hello,
++				                * supplied by the user applicaiton */
++	BIGNUM *telex_dh_priv_key; /* used for the secret 1023 bits for 
++                                * diffie hellman. This should be computed
++                                * before SSL_connect is called, using
++                                * BN_bin2bn(buf, len,
++                                * s->telex_dh_priv_key), where buf = 1023
++                                * bits based off of the telex shared
++                                * secret, and len=128) */ 
+ 
+ 	const SSL_METHOD *method; /* SSLv3 */
+ 
