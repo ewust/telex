@@ -38,14 +38,14 @@ int ssl_log_errors(enum LogLevel level, const char *name)
 	return count;
 }
 
-// Needed for peer_dh_tmp
+// Needed for peer_dh_tmp, from ssl/ssl_locl.h
 typedef struct cert_pkey_st
     {
     X509 *x509;
     EVP_PKEY *privatekey;
     } CERT_PKEY;
 
-#define SSL_PKEY_NUM 8
+#define SSL_PKEY_NUM 6  /* in openssl1.0.0d, this is 8 */
 typedef struct sess_cert_st
     {
     STACK_OF(X509) *cert_chain; /* as received from peer (not for SSL2) */
@@ -71,83 +71,37 @@ typedef struct sess_cert_st
     int references; /* actually always 1 at the moment */
     } SESS_CERT;
 
-
-//modified from crypto/dh/dh_key.c (plz to make non-static)
-int __generate_key(DH *dh)
-{
-    int ok=0;
-    BN_CTX *ctx;
-    BN_MONT_CTX *mont=NULL;
-    BIGNUM *pub_key=NULL, *priv_key=NULL;
-    
-
-    ctx = BN_CTX_new();
-    if (ctx == NULL) goto err;
-
-    priv_key = dh->priv_key;    
-
-    if (dh->pub_key == NULL) {
-        pub_key = BN_new();
-    } else {
-        pub_key = dh->pub_key;
-    }
-
-
-    if (dh->flags & DH_FLAG_CACHE_MONT_P)
-        {
-        mont = BN_MONT_CTX_set_locked(&dh->method_mont_p,
-                CRYPTO_LOCK_DH, dh->p, ctx);
-        if (!mont)
-            goto err;
-        }
-
-    
-    {
-        BIGNUM local_prk;
-        BIGNUM *prk;
-
-        if ((dh->flags & DH_FLAG_NO_EXP_CONSTTIME) == 0)
-            {
-            BN_init(&local_prk);
-            prk = &local_prk;
-            BN_with_flags(prk, priv_key, BN_FLG_CONSTTIME);
-            }
-        else
-            prk = priv_key;
-
-        if (!dh->meth->bn_mod_exp(dh, pub_key, dh->g, prk, dh->p, ctx, mont)) goto err;
-    }
-
-    dh->pub_key=pub_key;
-    dh->priv_key=priv_key;
-    ok=1;
-err:
-    if (ok != 1)
-        DHerr(DH_F_GENERATE_KEY,ERR_R_BN_LIB);
-
-    if ((pub_key != NULL)  && (dh->pub_key == NULL))  BN_free(pub_key);
-    if ((priv_key != NULL) && (dh->priv_key == NULL)) BN_free(priv_key);
-    BN_CTX_free(ctx);
-    return(ok); 
-}
+int ssl_state_index;
+int (*real_DH_gen_key)(DH *dh);
 
 // Replaces the generate_key function, called by DH_generate_key(dh_clnt)
 // We fill the priv_key with 
 int ssl_fake_DH_gen_key(DH *dh)
 {
     // Grab the state pointer out of the DH g param
-    struct telex_state *state; 
-    state = (struct telex_state*)BN_get_word(dh->g);
-    LogTrace("ssl", "ssl_fake_DH_gen_key %p, state %p", dh, state);
+    unsigned long g;
+    g = BN_get_word(dh->g);
 
-    // Put the original back
-    BN_free(dh->g); 
-    dh->g = BN_dup((const BIGNUM *)state->hack_tmp_g);
+    if (g != 2) {
+        struct telex_state *state; 
+        state = (struct telex_state*)BN_get_word(dh->g);
+    
+        // Put the original back
+        BN_free(dh->g); 
+        dh->g = BN_dup((const BIGNUM *)state->hack_tmp_g);
+    
+        g = BN_get_word(dh->g);
+        LogTrace("ssl", "ssl_fake_DH_gen_key %p, state %p, g 0x%x", dh, state, g);
 
-    // Fill in our secret
-    dh->priv_key = telex_ssl_get_dh_key(state->secret, NULL);
+        // Fill in our secret
+        dh->priv_key = telex_ssl_get_dh_key(state->secret, NULL);
+    } else {
+        LogTrace("ssl", "ssl_fake_DH_gen_key %p got g=2", dh);
+    }
 
-    return __generate_key(dh);
+    int ret = real_DH_gen_key(dh);
+    // cleanup?
+    return ret;  
 }
 
 void ssl_info_callback(const SSL *ssl, int where, int ret)
@@ -157,8 +111,8 @@ void ssl_info_callback(const SSL *ssl, int where, int ret)
         return;
     }
     
-    state = ssl->msg_callback_arg;
-    LogTrace("ssl", "ssl_info_callback [%s]", state->name);
+    state = SSL_get_ex_data(ssl, ssl_state_index);
+    LogTrace("ssl", "ssl_info_callback [%s] where %d", state->name, where);
 
     if (where == SSL_CB_HANDSHAKE_START) { 
 
@@ -178,9 +132,8 @@ void ssl_info_callback(const SSL *ssl, int where, int ret)
                 // The dh_srvr parameters (p,g) will be copied to dh_clnt
                 // We will hook the generate_key function, and put our state arg
                 // as a BIGNUM in dh_srvr->g. 
-
-                // Hook the function
-                ((DH_METHOD*)dh_srvr->meth)->generate_key = ssl_fake_DH_gen_key;
+               
+                //((DH_METHOD*)dh_srvr->meth)->generate_key = ssl_fake_DH_gen_key;
 
                 state->hack_tmp_g = BN_dup(dh_srvr->g); // Store the old g
                 BN_free(dh_srvr->g);
@@ -188,9 +141,10 @@ void ssl_info_callback(const SSL *ssl, int where, int ret)
                 // Store our state
                 dh_srvr->g = BN_new();
                 BN_set_word(dh_srvr->g, (unsigned long)state);
+                unsigned long test_state = BN_get_word(dh_srvr->g);
 
                 char *str = BN_bn2hex((const BIGNUM*)dh_srvr->g);
-                LogTrace("ssl", "[%s] SET+++++ %p %p [%s]", state->name, dh_srvr->g, state, str);
+                LogTrace("ssl", "[%s] SET+++++ %p %p [%s] (readback %x)", state->name, dh_srvr->g, state, str, test_state);
                 OPENSSL_free(str);
             }
         }
@@ -225,7 +179,8 @@ int ssl_fake_pseudorand(unsigned char *buf, int num)
         LogTrace("ssl", "ssl_fake_pseudorand(%p, %d) got %p [%s]", buf, num, state, state->name);
 
         // Load the client random: 4 bytes of timestamp + 28 bytes of tag
-	    memcpy(buf, state->tag, sizeof(Tag));  
+    	memcpy(buf, state->tag, sizeof(Tag));  
+        //memset(buf, 0xAA, sizeof(Tag));
         return 1;
     }
  
@@ -292,6 +247,19 @@ int ssl_init(struct telex_conf *conf)
     rand_meth->pseudorand = ssl_fake_pseudorand;
     RAND_set_rand_method(rand_meth);
 
+    // Hook the function
+    const DH_METHOD *ro_method;
+    DH_METHOD *method; 
+    ro_method = DH_get_default_method();
+    real_DH_gen_key = ro_method->generate_key;    
+
+    method = malloc(sizeof(DH_METHOD));
+    memcpy(method, ro_method, sizeof(DH_METHOD));
+    method->generate_key = ssl_fake_DH_gen_key;
+    DH_set_default_method((const DH_METHOD*)method);
+
+    ssl_state_index = SSL_get_ex_new_index(0, "state index", NULL, NULL, NULL);
+ 
     return 0;
 }
 
@@ -374,8 +342,8 @@ int ssl_new_telex(struct telex_state *state, unsigned long server_ip)
 	HexDump(LOG_TRACE, state->name, "tag", state->tag, sizeof(Tag));
 	HexDump(LOG_TRACE, state->name, "secret", state->secret, sizeof(Secret));
 
-    //HACK: we place the address of state into the ssl->msg_callback_arg
-    state->ssl->msg_callback_arg = state;
+    // store pointer to state so we can get it out in ssl_info_callback
+    SSL_set_ex_data(state->ssl, ssl_state_index, state);
 
     // Later, a callback (ssl_info_callback) (after SSL_clear is called) will
     // move this address to ssl->s3->server_random.
