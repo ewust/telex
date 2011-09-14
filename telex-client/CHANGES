@@ -1,6 +1,8 @@
 v0.0.1 - Initial release
 v0.0.2 (ongoing):
     - added tor.pubkey
+    - actually perform certificate validation
     - FreeBSD support, better Makefile/shell script practices (grimreaper)
     - fixed potential NULL deref in proxy.c (grimreaper)
+    - improved Mac support
 
