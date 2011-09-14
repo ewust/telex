@@ -42,14 +42,6 @@ To use Telex with your browser, change your browser's settings to use an
 HTTP(S) proxy of 127.0.0.1 port 8888.
 
 
-Our public demonstration is limited to a few websites:
-    google.com
-    telex.cc
-    twitter.com
-    youtube.com
-If you are a researcher requiring access to other sites, please contact us
-at telex@umich.edu.
-
 -------------------------- 
 WARNING: This software is an experimental prototype intended for
 researchers. It does not provide strong security and is UNSAFE FOR
