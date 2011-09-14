@@ -8,7 +8,7 @@ __exists() {
 }
 
 get="fetch";
-! __exists fetch && get="wget";
+! __exists fetch && get="curl -OL";
 
 $get http://www.openssl.org/source/openssl-1.0.0d.tar.gz
 $get http://monkey.org/~provos/libevent-2.0.12-stable.tar.gz
@@ -48,7 +48,7 @@ $get http://prdownloads.sourceforge.net/argtable/argtable2-13.tar.gz
     make install
     
 # Building telex-client:
-#cd $TELEX_HOMEi/
+#cd $TELEX_HOME/
 #make
 # Running telex-client: 
 #LD_LIBRARY_PATH=$TELEX_HOME/req/local/lib ./telex-client notblocked.telex.cc
