@@ -25,3 +25,7 @@ clean:
 	-rm -f $(TARGETS)
 	-rm -f $(OBJS)
 	$(MAKE) -C tag clean
+
+veryclean:
+	rm -rf ./req/
+	rm *.tar.gz
