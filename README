@@ -30,6 +30,7 @@ telex-client directory.
 
 Running telex-client
 --------------------------
+
 After installing Telex, run the client binary from the telex-client
 directory (from a command prompt):
 
@@ -41,6 +42,20 @@ Or for Windows:
 To use Telex with your browser, change your browser's settings to use an
 HTTP(S) proxy of 127.0.0.1 port 8888.
 
+Reported Blocking
+--------------------------
+
+On Sep 16, 2011 we confirmed reports of DNS blocking in China for the
+notblocked.telex.cc domain. Since our current deployment only has a
+handful of websites that can be used as unblocked websites, this is an
+effective method of blocking until Telex is deployed on a wider scale.
+
+A partial list of domains that can be used to communicate with telex is
+shown below:
+
+notblocked.telex.cc
+notreallyblocked.telex.cc
+jhalderm.com
 
 -------------------------- 
 WARNING: This software is an experimental prototype intended for
