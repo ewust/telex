@@ -20,11 +20,8 @@ int LogLogVA(enum LogLevel level, const char *loggerName, const char *logMessage
 {	
 	if (log_output_stream && level <= log_output_level) {
 		char *levelName;		
-		if (level < 0 || level >= sizeof(log_level_name)) {
-			levelName = "UNKNOWN";
-		} else {
-			levelName = log_level_name[level];
-		}
+		assert(level < sizeof(log_level_name));
+		levelName = log_level_name[level];
 
 		struct timeval now;
 		char timestamp[256];
