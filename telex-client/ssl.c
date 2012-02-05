@@ -103,7 +103,7 @@ void ssl_done(struct telex_conf *conf)
 // page 11, PRK = state_secret, CTXinfo = uniq
 BIGNUM *telex_ssl_get_dh_key(Secret state_secret, BIGNUM *res)
 {
-    int i;
+    unsigned int i;
     char *uniq = "Telex PRG";
     unsigned char buf[128];
     unsigned char out[SHA256_DIGEST_LENGTH];
