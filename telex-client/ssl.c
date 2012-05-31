@@ -101,10 +101,10 @@ void ssl_done(struct telex_conf *conf)
 // and produces a 1023-bit bignum to be used as the client's dh_priv_key
 // Uses Krawczyk's crypto-correct PRG: http://eprint.iacr.org/2010/264
 // page 11, PRK = state_secret, CTXinfo = uniq
-BIGNUM *telex_ssl_get_dh_key(Secret state_secret, BIGNUM *res)
+static BIGNUM *telex_ssl_get_dh_key(Secret state_secret, BIGNUM *res)
 {
-    int i;
-    char *uniq = "Telex PRG";
+    unsigned int i;
+    const char *uniq = "Telex PRG";
     unsigned char buf[128];
     unsigned char out[SHA256_DIGEST_LENGTH];
     unsigned char in[128]; // > SHA256_DIGEST_LENTH + strlen(uniq) + sizeof(int)
@@ -158,7 +158,7 @@ int ssl_new_telex(struct telex_state *state, unsigned long server_ip)
 	}
 	
     unsigned long t = htonl(time(NULL));
-    char *session_id = "\x00";
+    const char *session_id = "\x00";
 
     unsigned char tag_context[MAX_CONTEXT_LEN];
     memcpy(&tag_context[0], &server_ip, 4);

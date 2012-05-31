@@ -16,6 +16,6 @@
 #endif
 
 void address_to_string(struct sockaddr_in *sin, char *output, int outlen);
-unsigned long long time_ms();
+unsigned long long time_ms(void);
 
 #endif//_UTIL_H_

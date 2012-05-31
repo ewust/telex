@@ -6,6 +6,7 @@ extern "C" {
 #endif
 
 #include "ptwist.h"
+#include <stdint.h>
 
 #define MAX_CONTEXT_LEN 9   
     // ip(4) + timestamp(4) + session_id(1)

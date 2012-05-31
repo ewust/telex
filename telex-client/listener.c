@@ -37,7 +37,6 @@ int InitAndListenLoop(int port, evconnlistener_cb accept_cb, struct telex_conf *
 		LogFatal("listener", "Could not initialize libevent");
 		return 1;
 	}
-	void event_enable_debug_mode(void);	
 
 	conf->dns_base = evdns_base_new(base, 1);
 	if (!conf->dns_base) {
@@ -107,6 +106,9 @@ struct evconnlistener *listener_init_local(struct event_base *base, int port,
 // Shutdown on sigint
 static void sigint_cb(evutil_socket_t sig, short events, void *user_data)
 {
+    (void) sig;
+    (void) events;   // Avoid warning about unused parameter
+
 	struct event_base *base = user_data;
 	LogInfo("listener", "Got interrupt signal");
 	event_base_loopexit(base, NULL);
@@ -115,6 +117,8 @@ static void sigint_cb(evutil_socket_t sig, short events, void *user_data)
 // Shutdown on listener error
 static void listener_default_error_cb(struct evconnlistener *listener, void *ctx)
 {
+    (void) ctx;     // Avoid warning about unused parameter
+
 	struct event_base *base = evconnlistener_get_base(listener);
 	int err = EVUTIL_SOCKET_ERROR();
 	LogFatal("listener", "Got an error %d (%s) on the listener; shutting down", 

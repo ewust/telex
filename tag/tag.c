@@ -6,6 +6,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include "tag.h"
 byte maingen[PTWIST_BYTES];
 byte twistgen[PTWIST_BYTES];
 byte mainpub[PTWIST_BYTES];
@@ -15,7 +16,7 @@ void gen_tag(byte tag[PTWIST_TAG_BYTES], byte key[16],
 	const byte *context, size_t context_len)
 {
     byte seckey[PTWIST_BYTES];
-    byte sharedsec[PTWIST_BYTES+context_len];
+    byte sharedsec[PTWIST_BYTES+MAX_CONTEXT_LEN];
     byte usetwist;
     byte taghashout[32];
 #if PTWIST_PUZZLE_STRENGTH > 0
@@ -25,6 +26,7 @@ void gen_tag(byte tag[PTWIST_TAG_BYTES], byte key[16],
     bn_t Rbn, Hbn;
     int i, len, sign;
 #endif
+    assert(context_len <= MAX_CONTEXT_LEN);
 
     memset(tag, 0xAA, PTWIST_TAG_BYTES);
 
@@ -133,7 +135,7 @@ int check_tag(byte key[16], const byte privkey[PTWIST_BYTES],
 	size_t context_len)
 {
     int ret = -1;
-    byte sharedsec[PTWIST_BYTES+context_len];
+    byte sharedsec[PTWIST_BYTES+MAX_CONTEXT_LEN];
     byte taghashout[32];
 #if PTWIST_PUZZLE_STRENGTH > 0
     byte hashout[32];
@@ -142,6 +144,7 @@ int check_tag(byte key[16], const byte privkey[PTWIST_BYTES],
     unsigned int firstbits;
     int firstpass = 0;
 #endif
+    assert(context_len <= MAX_CONTEXT_LEN);
 
     /* Compute the shared secret privkey*TAG */
     ptwist_pointmul(sharedsec, tag, privkey);
