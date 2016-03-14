@@ -1,0 +1,4 @@
+Symlink tcp_sk_forge.c into net/
+Symlink tcp_sk_forge.h into include/linux
+Edit include/linux/Kbuild to add tcp_sk_forge.h to headers-y.
+Patch tcp_input.c to expose tcp_ack_update_rtt, tcp_init_metrics, and tcp_init_buffer_space.

@@ -1,0 +1,113 @@
+Problem: we want to do a nonlocal bind and then pretend to accept(2) a
+connection whose handshake has already completed. To do that, we need
+to forge the listening socket state in the kernel.
+
+accept(2) actually just pulls sockets off a queue (the
+icsk_accept_queue in inet_csks); it's ultimately implemented by
+inet_csk_accept in
+http://lxr.linux.no/linux+v2.6.37/net/ipv4/inet_connection_sock.c
+
+Sockets are added to that queue using inet_csk_reqsk_queue_add. The
+key place this is done is
+http://lxr.linux.no/linux+v2.6.37/net/ipv4/tcp_minisocks.c#L692
+. Immediately before that, the socket is created with:
+child = inet_csk(sk)->icsk_af_ops->syn_recv_sock(...);
+
+We can see from
+http://lxr.linux.no/linux+v2.6.37/net/ipv4/tcp_ipv4.c#L1830 that
+syn_recv_sock points to tcp_v4_syn_recv_sock
+(http://lxr.linux.no/linux+v2.6.37/net/ipv4/tcp_ipv4.c#L1403), which
+creates the new socket given a complete handshake by deriving it from
+the existing "openreq" minisock. It takes a struct sock and *its
+associated* request_sock.
+
+It *appears* that we can (and want to) skip listen(2) entirely, and go
+straight from bind(2) to our fake_accept(2). We should forge a child
+socket like the one created by tcp_v4_syn_recv_sock.
+
+
+
+Socket "class" hierarchy:
+
+a tcp_sock is an inet_connection_sock is an inet_sock is a sock.
+
+A request sock is not a sock. It is AKA a minisock.  For our purposes,
+request socks are allocated by inet_reqsk_alloc
+(http://lxr.linux.no/linux+v2.6.37/include/net/inet_sock.h#L208). inet_reqsk_alloc
+is called by tcp_v4_conn_request
+(http://lxr.linux.no/linux+v2.6.37/net/ipv4/tcp_ipv4.c#L1264) and
+cookie_v4_check
+(http://lxr.linux.no/linux+v2.6.37/net/ipv4/syncookies.c#L300). tcp_v4_conn_request
+is the conn_request member of inet_connection_sock_af_ops; it's called
+from tcp_recv_state_process (used by tcp_v4_rcv)
+(http://lxr.linux.no/linux+v2.6.37/net/ipv4/tcp_input.c#L5740) when a
+SYN is received.
+
+
+An sk_buff is different.
+http://lxr.linux.no/linux+v2.6.37/include/linux/skbuff.h#L314
+We are very unlikely to want to forge one.
+
+
+General TCP/IP stack:
+
+tcp_v4_recv (http://lxr.linux.no/linux+v2.6.37/net/ipv4/tcp_ipv4.c#L1622)
+is the handler member in TCP's struct net_protocol
+(http://lxr.linux.no/linux+v2.6.37/net/ipv4/af_inet.c#L1502).
+
+The TCP protocol handler, like any other handler, is stored in the
+inet_protos hash table and invoked by
+ip_local_deliver_finish. (http://lxr.linux.no/linux+v2.6.37/net/ipv4/ip_input.c#L207)
+
+
+
+
+TCP sockets are made by tcp_v4_init_sock
+(http://lxr.linux.no/linux+v2.6.37/net/ipv4/tcp_ipv4.c#L1857).
+It's the init member in TCP's struct proto (called tcp_prot).
+
+Current best outline:
+
+Simulate tcp_v4_syn_recv_sock entirely; do not touch request_socks.
+The bulk of the work is done in tcp_create_openreq_child
+(http://lxr.linux.no/linux+v2.6.37/net/ipv4/tcp_minisocks.c#L379). Pretend
+that the created socket is coming off the queue that accept pulls it
+off of.
+
+Before we can even cope with that, we have to deal with
+inet_csk_clone, and, in turn, with sk_clone.
+
+Like inet_csk_clone, we can make our new struct sock by sk_clone()ing
+the struct sock from our original socket. Then we need to deviate
+("inet_csk_forge"), because we're not going to mock up a full struct
+request_sock.
+
+
+Wait a second, we're going to let socket(2) and bind(2) do some work for us, aren't we?
+
+The syscalls themselves are in net/socket.c.
+
+socket(2) calls sock_create which calls inet_create, which is probably
+going to set stuff up for us pretty well.
+
+bind(2) sets the socket's address members.
+
+listen(2) just calls the family-specific listen code.
+
+accept(2) makes a completely fresh new socket and calls
+family-specific accept code with the old socket + the new one.
+
+inet_accept calls th protocol-specific accept code on the socket's
+struct sock to get a new struct sock. Then it sock_graft()s the new
+struct sock onto the "new" struct socket being passed into it (for
+return from accept). Our protocol-specific accept is inet_csk_accept,
+which I babble about at length above.
+
+
+
+We kind of skipped the return path after
+tcp_v4_forge_syn_recv_sock. Next up is tcp_check_req, which puts the
+socket on the accept queue (we don't want to) and returns to
+tcp_v4_hnd_req, which returns immediately to
+tcp_v4_do_rcv. tcp_v4_do_rcv calls tcp_child_process, which,
+crucially, bh_unlock_sock()s and sock_put()s the new child.

@@ -1,0 +1,172 @@
+ptwist.o: ptwist.c ../../tag/relic-0.2.3/include/relic.h \
+ ../../tag/relic-0.2.3/build/include/relic_conf.h \
+ ../../tag/relic-0.2.3/include/relic_core.h \
+ ../../tag/relic-0.2.3/include/relic_error.h /usr/include/stdint.h \
+ /usr/include/features.h /usr/include/bits/predefs.h \
+ /usr/include/sys/cdefs.h /usr/include/bits/wordsize.h \
+ /usr/include/gnu/stubs.h /usr/include/gnu/stubs-64.h \
+ /usr/include/bits/wchar.h /usr/include/setjmp.h \
+ /usr/include/bits/setjmp.h /usr/include/bits/sigset.h \
+ /usr/include/bits/setjmp2.h /usr/include/stdlib.h \
+ /usr/lib/gcc/x86_64-linux-gnu/4.4.5/include/stddef.h \
+ /usr/include/bits/waitflags.h /usr/include/bits/waitstatus.h \
+ /usr/include/endian.h /usr/include/bits/endian.h \
+ /usr/include/bits/byteswap.h /usr/include/sys/types.h \
+ /usr/include/bits/types.h /usr/include/bits/typesizes.h \
+ /usr/include/time.h /usr/include/sys/select.h /usr/include/bits/select.h \
+ /usr/include/bits/time.h /usr/include/sys/sysmacros.h \
+ /usr/include/bits/pthreadtypes.h /usr/include/alloca.h \
+ /usr/include/bits/stdlib.h /usr/include/stdio.h /usr/include/libio.h \
+ /usr/include/_G_config.h /usr/include/wchar.h \
+ /usr/lib/gcc/x86_64-linux-gnu/4.4.5/include/stdarg.h \
+ /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h \
+ /usr/include/bits/stdio.h /usr/include/bits/stdio2.h \
+ ../../tag/relic-0.2.3/include/relic_util.h \
+ ../../tag/relic-0.2.3/include/relic_types.h /usr/include/gmp.h \
+ /usr/include/gmp-x86_64.h ../../tag/relic-0.2.3/include/relic_bn.h \
+ /usr/include/string.h /usr/include/xlocale.h /usr/include/bits/string.h \
+ /usr/include/bits/string2.h /usr/include/bits/string3.h \
+ ../../tag/relic-0.2.3/include/relic_dv.h \
+ ../../tag/relic-0.2.3/include/relic_fp.h \
+ ../../tag/relic-0.2.3/include/relic_fb.h \
+ ../../tag/relic-0.2.3/include/relic_ep.h \
+ ../../tag/relic-0.2.3/include/relic_eb.h \
+ ../../tag/relic-0.2.3/include/relic_ec.h \
+ ../../tag/relic-0.2.3/include/relic_pp.h \
+ ../../tag/relic-0.2.3/include/relic_pb.h \
+ ../../tag/relic-0.2.3/include/relic_pc.h \
+ ../../tag/relic-0.2.3/include/relic_cp.h \
+ ../../tag/relic-0.2.3/include/relic_md.h \
+ ../../tag/relic-0.2.3/include/relic_rand.h ptwist.h
+
+../../tag/relic-0.2.3/include/relic.h:
+
+../../tag/relic-0.2.3/build/include/relic_conf.h:
+
+../../tag/relic-0.2.3/include/relic_core.h:
+
+../../tag/relic-0.2.3/include/relic_error.h:
+
+/usr/include/stdint.h:
+
+/usr/include/features.h:
+
+/usr/include/bits/predefs.h:
+
+/usr/include/sys/cdefs.h:
+
+/usr/include/bits/wordsize.h:
+
+/usr/include/gnu/stubs.h:
+
+/usr/include/gnu/stubs-64.h:
+
+/usr/include/bits/wchar.h:
+
+/usr/include/setjmp.h:
+
+/usr/include/bits/setjmp.h:
+
+/usr/include/bits/sigset.h:
+
+/usr/include/bits/setjmp2.h:
+
+/usr/include/stdlib.h:
+
+/usr/lib/gcc/x86_64-linux-gnu/4.4.5/include/stddef.h:
+
+/usr/include/bits/waitflags.h:
+
+/usr/include/bits/waitstatus.h:
+
+/usr/include/endian.h:
+
+/usr/include/bits/endian.h:
+
+/usr/include/bits/byteswap.h:
+
+/usr/include/sys/types.h:
+
+/usr/include/bits/types.h:
+
+/usr/include/bits/typesizes.h:
+
+/usr/include/time.h:
+
+/usr/include/sys/select.h:
+
+/usr/include/bits/select.h:
+
+/usr/include/bits/time.h:
+
+/usr/include/sys/sysmacros.h:
+
+/usr/include/bits/pthreadtypes.h:
+
+/usr/include/alloca.h:
+
+/usr/include/bits/stdlib.h:
+
+/usr/include/stdio.h:
+
+/usr/include/libio.h:
+
+/usr/include/_G_config.h:
+
+/usr/include/wchar.h:
+
+/usr/lib/gcc/x86_64-linux-gnu/4.4.5/include/stdarg.h:
+
+/usr/include/bits/stdio_lim.h:
+
+/usr/include/bits/sys_errlist.h:
+
+/usr/include/bits/stdio.h:
+
+/usr/include/bits/stdio2.h:
+
+../../tag/relic-0.2.3/include/relic_util.h:
+
+../../tag/relic-0.2.3/include/relic_types.h:
+
+/usr/include/gmp.h:
+
+/usr/include/gmp-x86_64.h:
+
+../../tag/relic-0.2.3/include/relic_bn.h:
+
+/usr/include/string.h:
+
+/usr/include/xlocale.h:
+
+/usr/include/bits/string.h:
+
+/usr/include/bits/string2.h:
+
+/usr/include/bits/string3.h:
+
+../../tag/relic-0.2.3/include/relic_dv.h:
+
+../../tag/relic-0.2.3/include/relic_fp.h:
+
+../../tag/relic-0.2.3/include/relic_fb.h:
+
+../../tag/relic-0.2.3/include/relic_ep.h:
+
+../../tag/relic-0.2.3/include/relic_eb.h:
+
+../../tag/relic-0.2.3/include/relic_ec.h:
+
+../../tag/relic-0.2.3/include/relic_pp.h:
+
+../../tag/relic-0.2.3/include/relic_pb.h:
+
+../../tag/relic-0.2.3/include/relic_pc.h:
+
+../../tag/relic-0.2.3/include/relic_cp.h:
+
+../../tag/relic-0.2.3/include/relic_md.h:
+
+../../tag/relic-0.2.3/include/relic_rand.h:
+
+ptwist.h:

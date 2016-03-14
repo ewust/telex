@@ -1,0 +1,208 @@
+Grammar
+
+    0 $accept: configfile $end
+
+    1 configfile: /* empty */
+    2           | options
+
+    3 options: option
+    4        | options option
+
+    5 option: domain
+    6       | intopt
+    7       | stringopt
+    8       | floatopt
+
+    9 intopt: BROWORD BROINT
+
+   10 stringopt: BROWORD BROSTRING
+   11          | BROWORD BROWORD
+
+   12 floatopt: BROWORD BRODOUBLE
+
+   13 domain: '[' BROWORD ']'
+
+
+Terminals, with rules where they appear
+
+$end (0) 0
+'[' (91) 13
+']' (93) 13
+error (256)
+BROINT (258) 9
+BROWORD (259) 9 10 11 12 13
+BROSTRING (260) 10
+BRODOUBLE (261) 12
+
+
+Nonterminals, with rules where they appear
+
+$accept (9)
+    on left: 0
+configfile (10)
+    on left: 1 2, on right: 0
+options (11)
+    on left: 3 4, on right: 2 4
+option (12)
+    on left: 5 6 7 8, on right: 3 4
+intopt (13)
+    on left: 9, on right: 6
+stringopt (14)
+    on left: 10 11, on right: 7
+floatopt (15)
+    on left: 12, on right: 8
+domain (16)
+    on left: 13, on right: 5
+
+
+state 0
+
+    0 $accept: . configfile $end
+
+    BROWORD  shift, and go to state 1
+    '['      shift, and go to state 2
+
+    $default  reduce using rule 1 (configfile)
+
+    configfile  go to state 3
+    options     go to state 4
+    option      go to state 5
+    intopt      go to state 6
+    stringopt   go to state 7
+    floatopt    go to state 8
+    domain      go to state 9
+
+
+state 1
+
+    9 intopt: BROWORD . BROINT
+   10 stringopt: BROWORD . BROSTRING
+   11          | BROWORD . BROWORD
+   12 floatopt: BROWORD . BRODOUBLE
+
+    BROINT     shift, and go to state 10
+    BROWORD    shift, and go to state 11
+    BROSTRING  shift, and go to state 12
+    BRODOUBLE  shift, and go to state 13
+
+
+state 2
+
+   13 domain: '[' . BROWORD ']'
+
+    BROWORD  shift, and go to state 14
+
+
+state 3
+
+    0 $accept: configfile . $end
+
+    $end  shift, and go to state 15
+
+
+state 4
+
+    2 configfile: options .
+    4 options: options . option
+
+    BROWORD  shift, and go to state 1
+    '['      shift, and go to state 2
+
+    $default  reduce using rule 2 (configfile)
+
+    option     go to state 16
+    intopt     go to state 6
+    stringopt  go to state 7
+    floatopt   go to state 8
+    domain     go to state 9
+
+
+state 5
+
+    3 options: option .
+
+    $default  reduce using rule 3 (options)
+
+
+state 6
+
+    6 option: intopt .
+
+    $default  reduce using rule 6 (option)
+
+
+state 7
+
+    7 option: stringopt .
+
+    $default  reduce using rule 7 (option)
+
+
+state 8
+
+    8 option: floatopt .
+
+    $default  reduce using rule 8 (option)
+
+
+state 9
+
+    5 option: domain .
+
+    $default  reduce using rule 5 (option)
+
+
+state 10
+
+    9 intopt: BROWORD BROINT .
+
+    $default  reduce using rule 9 (intopt)
+
+
+state 11
+
+   11 stringopt: BROWORD BROWORD .
+
+    $default  reduce using rule 11 (stringopt)
+
+
+state 12
+
+   10 stringopt: BROWORD BROSTRING .
+
+    $default  reduce using rule 10 (stringopt)
+
+
+state 13
+
+   12 floatopt: BROWORD BRODOUBLE .
+
+    $default  reduce using rule 12 (floatopt)
+
+
+state 14
+
+   13 domain: '[' BROWORD . ']'
+
+    ']'  shift, and go to state 17
+
+
+state 15
+
+    0 $accept: configfile $end .
+
+    $default  accept
+
+
+state 16
+
+    4 options: options option .
+
+    $default  reduce using rule 4 (options)
+
+
+state 17
+
+   13 domain: '[' BROWORD ']' .
+
+    $default  reduce using rule 13 (domain)

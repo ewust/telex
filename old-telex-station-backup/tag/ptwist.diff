@@ -1,0 +1,345 @@
+diff -urN relic-0.2.3-orig/include/low/relic_fp_low.h relic-0.2.3/include/low/relic_fp_low.h
+--- relic-0.2.3-orig/include/low/relic_fp_low.h	2010-06-09 03:17:20.000000000 -0400
++++ relic-0.2.3/include/low/relic_fp_low.h	2010-10-08 21:29:38.182989167 -0400
+@@ -188,7 +188,7 @@
+  * @param[in] a				- the first digit vector to multiply.
+  * @param[in] b				- the second digit vector to multiply.
+  */
+-void fp_muln_low(dig_t *c, dig_t *a, dig_t *b);
++void fp_muln_low(dig_t *c, const dig_t *a, const dig_t *b);
+ 
+ /**
+  * Multiplies two digit vectors of the same size with embedded modular
+diff -urN relic-0.2.3-orig/include/relic_bn.h relic-0.2.3/include/relic_bn.h
+--- relic-0.2.3-orig/include/relic_bn.h	2010-06-09 03:17:20.000000000 -0400
++++ relic-0.2.3/include/relic_bn.h	2010-10-10 16:47:17.000617775 -0400
+@@ -625,7 +625,7 @@
+  * @param[out] size			- the result.
+  * @param[in] a				- the multiple precision integer.
+  */
+-void bn_size_bin(int *size, bn_t a);
++void bn_size_bin(int *size, const bn_t a);
+ 
+ /**
+  * Reads a multiple precision integer from a byte vector.
+@@ -635,7 +635,7 @@
+  * @param[in] len			- the size of the string.
+  * @param[in] sign			- the sign of the multiple precision integer.
+  */
+-void bn_read_bin(bn_t a, unsigned char *bin, int len, int sign);
++void bn_read_bin(bn_t a, const unsigned char *bin, int len, int sign);
+ 
+ /**
+  * Writes a multiple precision integer to a byte vector.
+@@ -646,7 +646,7 @@
+  * @param[in] a				- the multiple integer to write.
+  * @throw ERR_BUFFER		- if the buffer capacity is insufficient.
+  */
+-void bn_write_bin(unsigned char *bin, int *len, int *sign, bn_t a);
++void bn_write_bin(unsigned char *bin, int *len, int *sign, const bn_t a);
+ 
+ /**
+  * Returns the number of digits necessary to store a multiple precision integer.
+diff -urN relic-0.2.3-orig/include/relic_conf.h.in relic-0.2.3/include/relic_conf.h.in
+--- relic-0.2.3-orig/include/relic_conf.h.in	2010-06-09 03:17:20.000000000 -0400
++++ relic-0.2.3/include/relic_conf.h.in	2010-10-08 17:57:49.481114240 -0400
+@@ -192,6 +192,9 @@
+ /** Prefer Pseudo-Mersenne primes over random primes. */
+ #cmakedefine FP_PMERS
+ 
++/** Use curves with a prime-order twist, if possible */
++#cmakedefine EP_PTWIST
++
+ /** Prime field arithmetic method */
+ #define FP_METHD "@FP_METHD@"
+ 
+diff -urN relic-0.2.3-orig/include/relic_ep.h relic-0.2.3/include/relic_ep.h
+--- relic-0.2.3-orig/include/relic_ep.h	2010-06-09 03:17:20.000000000 -0400
++++ relic-0.2.3/include/relic_ep.h	2010-10-08 21:39:32.371114445 -0400
+@@ -64,6 +64,8 @@
+ 	BNN_P256 = 7,
+ 	/** Barreto-Naehrig curve with positive x. */
+ 	BNP_P256 = 8,
++	/** PTWIST-160 prime curve. */
++	PTWIST_P160 = 9,
+ };
+ 
+ /**
+@@ -451,6 +453,14 @@
+ void ep_curve_get_ord(bn_t n);
+ 
+ /**
++ * Returns the y^2 value on the curve corresponding to the given x value.
++ *
++ * @param[out] y2                       - the returned y^2 value
++ * @param[in] x                         - the input x coordinate
++ */
++void ep_curve_compute_y2(fp_t y2, const fp_t x);
++
++/**
+  * Returns the parameter identifier of the currently configured prime elliptic
+  * curve.
+  *
+@@ -468,6 +478,19 @@
+  */
+ void ep_curve_set_ordin(fp_t a, fp_t b, ep_t g, bn_t r);
+ 
++#ifdef EP_PTWIST
++/**
++ * Configures the twist of a new ordinary prime elliptic curve by its
++ * coefficients.
++ *
++ * @param[in] a			- the coefficient a of the twist.
++ * @param[in] b			- the coefficient b of the twist.
++ * @param[in] g			- the generator.
++ * @param[in] r			- the order of the group of points.
++ */
++void ep_curve_set_ordin_twist(fp_t a, fp_t b, ep_t g, bn_t r);
++#endif
++
+ /**
+  * Configures a new pairing-friendly prime elliptic curve by its coefficients.
+  *
+diff -urN relic-0.2.3-orig/include/relic_fp.h relic-0.2.3/include/relic_fp.h
+--- relic-0.2.3-orig/include/relic_fp.h	2010-06-09 03:17:20.000000000 -0400
++++ relic-0.2.3/include/relic_fp.h	2010-10-08 21:28:31.242364255 -0400
+@@ -89,6 +89,8 @@
+ 	BNN_256 = 7,
+ 	/** 256-bit prime provided in Barreto et al. for use with BN curves. */
+ 	BNP_256 = 8,
++	/** PTWIST-160 fast reduction prime. */
++	PTWIST_160 = 9,
+ };
+ 
+ /*============================================================================*/
+@@ -560,7 +562,7 @@
+  * @param[in] a				- the first prime field element to multiply.
+  * @param[in] b				- the second prime field element to multiply.
+  */
+-void fp_mul_comba(fp_t c, fp_t a, fp_t b);
++void fp_mul_comba(fp_t c, const fp_t a, const fp_t b);
+ 
+ /**
+  * Multiples two prime field elements using multiplication integrated with
+diff -urN relic-0.2.3-orig/README relic-0.2.3/README
+--- relic-0.2.3-orig/README	1969-12-31 19:00:00.000000000 -0500
++++ relic-0.2.3/README	2010-10-08 18:00:02.901114192 -0400
+@@ -0,0 +1,4 @@
++mkdir build
++cd build
++cmake -D ARITH=GMP -D FP_PRIME=160 -D EP_PTWIST=1 ..
++make
+diff -urN relic-0.2.3-orig/src/bn/relic_bn_util.c relic-0.2.3/src/bn/relic_bn_util.c
+--- relic-0.2.3-orig/src/bn/relic_bn_util.c	2010-06-09 03:17:04.000000000 -0400
++++ relic-0.2.3/src/bn/relic_bn_util.c	2010-10-10 17:49:02.333614189 -0400
+@@ -373,7 +373,7 @@
+ 	}
+ }
+ 
+-void bn_size_bin(int *size, bn_t a) {
++void bn_size_bin(int *size, const bn_t a) {
+ 	dig_t d;
+ 	int digits;
+ 
+@@ -387,7 +387,7 @@
+ 	*size = digits;
+ }
+ 
+-void bn_read_bin(bn_t a, unsigned char *bin, int len, int sign) {
++void bn_read_bin(bn_t a, const unsigned char *bin, int len, int sign) {
+ 	int i, j;
+ 	dig_t d;
+ 	int digs = (len % sizeof(dig_t) ==
+@@ -418,9 +418,10 @@
+ 	bn_trim(a);
+ }
+ 
+-void bn_write_bin(unsigned char *bin, int *len, int *sign, bn_t a) {
++void bn_write_bin(unsigned char *bin, int *len, int *sign, const bn_t a) {
+ 	int size;
+ 	dig_t d;
++	int offset = 0;
+ 
+ 	bn_size_bin(&size, a);
+ 
+@@ -431,12 +432,14 @@
+ 	for (int i = 0; i < a->used; i++) {
+ 		d = a->dp[i];
+ 		for (int j = 0; j < (int)sizeof(dig_t); j++) {
+-			bin[i * sizeof(dig_t) + j] = d & 0xFF;
++			if (offset < *len) {
++			    bin[offset++] = d & 0xFF;
++			}
+ 			d = d >> 8;
+ 		}
+ 	}
+ 
+-	*len = size;
++	*len = offset;
+ 	*sign = a->sign;
+ }
+ 
+diff -urN relic-0.2.3-orig/src/ep/relic_ep_curve.c relic-0.2.3/src/ep/relic_ep_curve.c
+--- relic-0.2.3-orig/src/ep/relic_ep_curve.c	2010-06-09 03:17:04.000000000 -0400
++++ relic-0.2.3/src/ep/relic_ep_curve.c	2010-10-10 16:39:14.233614181 -0400
+@@ -190,6 +190,13 @@
+ 	bn_copy(n, &curve_r);
+ }
+ 
++void ep_curve_compute_y2(fp_t y2, const fp_t x) {
++   	fp_mul(y2, x, x);
++	fp_add(y2, y2, curve_a);
++	fp_mul(y2, y2, x);
++	fp_add(y2, y2, curve_b);
++}
++
+ #if defined(EP_PRECO)
+ 
+ ep_t *ep_curve_get_tab() {
+diff -urN relic-0.2.3-orig/src/ep/relic_ep_param.c relic-0.2.3/src/ep/relic_ep_param.c
+--- relic-0.2.3-orig/src/ep/relic_ep_param.c	2010-06-09 03:17:04.000000000 -0400
++++ relic-0.2.3/src/ep/relic_ep_param.c	2010-10-10 17:18:47.853614109 -0400
+@@ -45,7 +45,7 @@
+ 
+ #if defined(EP_ORDIN) && FP_PRIME == 160
+ /**
+- * Parameters for the NIST P-192 binary elliptic curve.
++ * Parameters for the SECG P160 prime elliptic curve.
+  */
+ /** @{ */
+ #define SECG_P160_A		"FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF7FFFFFFC"
+@@ -54,6 +54,25 @@
+ #define SECG_P160_Y		"23A628553168947D59DCC912042351377AC5FB32"
+ #define SECG_P160_R		"100000000000000000001F4C8F927AED3CA752257"
+ /** @} */
++
++/**
++ * Parameters for the 160-bit prime twist elliptic curve.
++ */
++/** @{ */
++#define PTWIST_P160_A		"FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF7FFFFFFC"
++#define PTWIST_P160_B		"99F69477B35B480E77B5A631AA7474DB49E10936"
++#define PTWIST_P160_X		"01"
++#define PTWIST_P160_Y		"751BD81F2DAAD06CEC639F8863C461E0BEBFCA35"
++#define PTWIST_P160_R		"10000000000000000000035CEF76E30097662DB2D"
++/** @} */
++
++/* The twist curve has the following parameters: 
++#define PTWIST_P160_TWIST_A	"FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF7FFFFFFC"
++#define PTWIST_P160_TWIST_B	"66096B884CA4B7F1884A59CE558B8B24361EF6C9"
++#define PTWIST_P160_TWIST_X	"00"
++#define PTWIST_P160_TWIST_Y	"5A73A75FCAC419CD6DC8C68AC1280B844B209AED"
++#define PTWIST_P160_TWIST_R	"FFFFFFFFFFFFFFFFFFFFCA310891CFF5899D24D3"
++*/
+ #endif
+ 
+ #if defined(EP_ORDIN) && FP_PRIME == 192
+@@ -186,6 +205,19 @@
+ 	PREPARE(str, CURVE##_R);												\
+ 	bn_read_str(r, str, strlen(str), 16);									\
+ 
++#define ASSIGNTWIST(CURVE, FIELD)												\
++	fp_param_set(FIELD);													\
++	PREPARE(str, CURVE##_TWIST_A);												\
++	fp_read(twist_a, str, strlen(str), 16);										\
++	PREPARE(str, CURVE##_TWIST_B);												\
++	fp_read(twist_b, str, strlen(str), 16);										\
++	PREPARE(str, CURVE##_TWIST_X);												\
++	fp_read(twist_g->x, str, strlen(str), 16);									\
++	PREPARE(str, CURVE##_TWIST_Y);												\
++	fp_read(twist_g->y, str, strlen(str), 16);									\
++	PREPARE(str, CURVE##_TWIST_R);												\
++	bn_read_str(twist_r, str, strlen(str), 16);									\
++
+ /**
+  * Current configured elliptic curve parameters.
+  */
+@@ -223,11 +255,18 @@
+ 
+ 		switch (param) {
+ #if defined(EP_ORDIN) && FP_PRIME == 160
++#ifdef EP_PTWIST
++			case PTWIST_P160:
++				ASSIGN(PTWIST_P160, PTWIST_160);
++				ordin = 1;
++				break;
++#else
+ 			case SECG_P160:
+ 				ASSIGN(SECG_P160, SECG_160);
+ 				ordin = 1;
+ 				break;
+ #endif
++#endif
+ #if defined(EP_ORDIN) && FP_PRIME == 192
+ 			case NIST_P192:
+ 				ASSIGN(NIST_P192, NIST_192);
+@@ -306,7 +345,9 @@
+ 
+ int ep_param_set_any_ordin() {
+ 	int r = STS_OK;
+-#if FP_PRIME == 160
++#if FP_PRIME == 160 && defined(EP_PTWIST)
++	ep_param_set(PTWIST_P160);
++#elif FP_PRIME == 160
+ 	ep_param_set(SECG_P160);
+ #elif FP_PRIME == 192
+ 	ep_param_set(NIST_P192);
+@@ -340,6 +381,9 @@
+ 		case SECG_P160:
+ 			util_print_banner("Curve SECG-P160:", 0);
+ 			break;
++		case PTWIST_P160:
++			util_print_banner("Curve PTWIST-160:", 0);
++			break;
+ 		case NIST_P192:
+ 			util_print_banner("Curve NIST-P192:", 0);
+ 			break;
+diff -urN relic-0.2.3-orig/src/fp/relic_fp_mul.c relic-0.2.3/src/fp/relic_fp_mul.c
+--- relic-0.2.3-orig/src/fp/relic_fp_mul.c	2010-06-09 03:17:04.000000000 -0400
++++ relic-0.2.3/src/fp/relic_fp_mul.c	2010-10-08 21:28:50.972364245 -0400
+@@ -210,7 +210,7 @@
+ 
+ #if FP_MUL == COMBA || !defined(STRIP)
+ 
+-void fp_mul_comba(fp_t c, fp_t a, fp_t b) {
++void fp_mul_comba(fp_t c, const fp_t a, const fp_t b) {
+ 	dv_t t;
+ 
+ 	dv_null(t);
+diff -urN relic-0.2.3-orig/src/fp/relic_fp_param.c relic-0.2.3/src/fp/relic_fp_param.c
+--- relic-0.2.3-orig/src/fp/relic_fp_param.c	2010-06-09 03:17:04.000000000 -0400
++++ relic-0.2.3/src/fp/relic_fp_param.c	2010-10-08 18:37:26.683184600 -0400
+@@ -70,7 +70,8 @@
+ 		switch (param) {
+ #if FP_PRIME == 160
+ 			case SECG_160:
+-				/* p = 2^160 - 2^31 + 1. */
++			case PTWIST_160:
++				/* p = 2^160 - 2^31 - 1. */
+ 				f[0] = -1;
+ 				f[1] = -31;
+ 				fp_prime_set_spars(f, 2);
+diff -urN relic-0.2.3-orig/src/low/gmp/relic_fp_mul_low.c relic-0.2.3/src/low/gmp/relic_fp_mul_low.c
+--- relic-0.2.3-orig/src/low/gmp/relic_fp_mul_low.c	2010-06-09 03:17:04.000000000 -0400
++++ relic-0.2.3/src/low/gmp/relic_fp_mul_low.c	2010-10-08 21:30:30.802989175 -0400
+@@ -40,7 +40,7 @@
+ 	return mpn_addmul_1(c, a, FP_DIGS, digit);
+ }
+ 
+-void fp_muln_low(dig_t *c, dig_t *a, dig_t *b) {
++void fp_muln_low(dig_t *c, const dig_t *a, const dig_t *b) {
+ 	mpn_mul_n(c, a, b, FP_DIGS);
+ }
+ 
+diff -urN relic-0.2.3-orig/src/relic_rand.c relic-0.2.3/src/relic_rand.c
+--- relic-0.2.3-orig/src/relic_rand.c	2010-06-09 03:17:04.000000000 -0400
++++ relic-0.2.3/src/relic_rand.c	2010-10-08 11:58:35.000000000 -0400
+@@ -63,7 +63,7 @@
+ /**
+  * The path to the char device that supplies entropy.
+  */
+-#define RAND_PATH		"/dev/random"
++#define RAND_PATH		"/dev/urandom"
+ 
+ #endif
+ 

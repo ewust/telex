@@ -1,0 +1,3 @@
+PktDagSrc.o: PktDagSrc.cc ../config.h
+
+../config.h:

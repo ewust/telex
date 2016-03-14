@@ -1,0 +1,38 @@
+INCLUDE=-I../local/include
+LIB=-L../local/lib
+
+# Uncomment these 2 lines if you installed openssl/libevent 
+# to the default location /usr/local (e.g. no ./configure --prefix=)
+#INCLUDE=-I/usr/local/ssl/include -I/usr/local/include
+#LIB=-L/usr/local/ssl/lib -L/usr/local/lib
+
+CFLAGS=-O3 -Wall $(INCLUDE) -DPUBKEY_DATA_
+LDFLAGS=$(LIB) -lssl -lcrypto -levent_core -levent_extra -levent_openssl -largtable2
+
+# for Windows:
+CFLAGS += -static
+LDFLAGS += -lws2_32 -lgdi32 -levent 
+
+OBJS=listener.o logger.o proxy.o ssl.o util.o client.o tag/tag.o tag/ptwist168.o
+TARGETS=telex-client
+
+all: $(TARGETS)
+
+pubkey_data_.h: pubkey
+	python bin2c.py pubkey pubkey_data_ > pubkey_data_.h
+
+rootpem_data_.h: root.pem
+	python bin2c.py root.pem rootpem_data_ > rootpem_data_.h
+
+tag/*.o:
+	$(MAKE) -C tag $@
+
+telex-client: pubkey_data_.h rootpem_data_.h $(OBJS)
+	g++ -o $@ $(CFLAGS) $^ $(LDFLAGS)
+
+.PHONY: clean
+clean:	
+	-rm -f $(TARGETS)
+	-rm -f $(OBJS)
+	-rm -f *_data_.h
+	$(MAKE) -C tag clean

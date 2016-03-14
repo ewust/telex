@@ -1,0 +1,3 @@
+strsep.o: strsep.c ../config.h
+
+../config.h:

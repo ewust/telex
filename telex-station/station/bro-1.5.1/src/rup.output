@@ -1,0 +1,1026 @@
+Grammar
+
+    0 $accept: rule_list $end
+
+    1 rule_list: rule_list rule
+    2          | /* empty */
+
+    3 $@1: /* empty */
+
+    4 rule: TOK_SIGNATURE TOK_IDENT $@1 '{' rule_attr_list '}'
+
+    5 rule_attr_list: rule_attr_list rule_attr
+    6               | /* empty */
+
+    7 rule_attr: TOK_DST_IP TOK_COMP value_list
+    8          | TOK_DST_PORT TOK_COMP value_list
+
+    9 $@2: /* empty */
+
+   10 $@3: /* empty */
+
+   11 rule_attr: TOK_EVAL $@2 TOK_POLICY_SYMBOL $@3
+   12          | TOK_HEADER hdr_expr
+   13          | TOK_IP_OPTIONS ipoption_list
+   14          | TOK_IP_PROTO TOK_COMP TOK_PROT
+   15          | TOK_IP_PROTO TOK_COMP value_list
+   16          | TOK_EVENT string
+   17          | TOK_ENABLE TOK_STRING
+   18          | TOK_DISABLE TOK_STRING
+   19          | TOK_PATTERN_TYPE pattern
+   20          | TOK_PATTERN_TYPE '[' rangeopt ']' pattern
+   21          | TOK_PAYLOAD_SIZE TOK_COMP integer
+   22          | TOK_REQUIRES_SIGNATURE TOK_IDENT
+   23          | TOK_REQUIRES_SIGNATURE '!' TOK_IDENT
+   24          | TOK_REQUIRES_REVERSE_SIGNATURE TOK_IDENT
+   25          | TOK_REQUIRES_REVERSE_SIGNATURE '!' TOK_IDENT
+   26          | TOK_SAME_IP
+   27          | TOK_SRC_IP TOK_COMP value_list
+   28          | TOK_SRC_PORT TOK_COMP value_list
+   29          | TOK_TCP_STATE tcpstate_list
+   30          | TOK_ACTIVE TOK_BOOL
+
+   31 hdr_expr: TOK_PROT '[' range ']' '&' integer TOK_COMP value
+   32         | TOK_PROT '[' range ']' TOK_COMP value_list
+
+   33 value_list: value_list ',' value
+   34           | value_list ',' TOK_IDENT
+   35           | value
+   36           | TOK_IDENT
+
+   37 value: TOK_INT
+   38      | TOK_IP
+
+   39 rangeopt: range
+   40         | ':' integer
+   41         | integer ':'
+
+   42 range: integer
+   43      | integer ':' integer
+
+   44 ipoption_list: ipoption_list ',' TOK_IP_OPTION_SYM
+   45              | TOK_IP_OPTION_SYM
+
+   46 tcpstate_list: tcpstate_list ',' TOK_TCP_STATE_SYM
+   47              | TOK_TCP_STATE_SYM
+
+   48 integer: TOK_INT
+   49        | TOK_IDENT
+
+   50 string: TOK_STRING
+   51       | TOK_IDENT
+
+   52 pattern: TOK_PATTERN
+   53        | TOK_IDENT
+
+
+Terminals, with rules where they appear
+
+$end (0) 0
+'!' (33) 23 25
+'&' (38) 31
+',' (44) 33 34 44 46
+':' (58) 40 41 43
+'[' (91) 20 31 32
+']' (93) 20 31 32
+'{' (123) 4
+'}' (125) 4
+error (256)
+TOK_COMP (258) 7 8 14 15 21 27 28 31 32
+TOK_DISABLE (259) 18
+TOK_DST_IP (260) 7
+TOK_DST_PORT (261) 8
+TOK_ENABLE (262) 17
+TOK_EVAL (263) 11
+TOK_EVENT (264) 16
+TOK_HEADER (265) 12
+TOK_IDENT (266) 4 22 23 24 25 34 36 49 51 53
+TOK_INT (267) 37 48
+TOK_IP (268) 38
+TOK_IP_OPTIONS (269) 13
+TOK_IP_OPTION_SYM (270) 44 45
+TOK_IP_PROTO (271) 14 15
+TOK_PATTERN (272) 52
+TOK_PATTERN_TYPE (273) 19 20
+TOK_PAYLOAD_SIZE (274) 21
+TOK_PROT (275) 14 31 32
+TOK_REQUIRES_SIGNATURE (276) 22 23
+TOK_REQUIRES_REVERSE_SIGNATURE (277) 24 25
+TOK_SIGNATURE (278) 4
+TOK_SAME_IP (279) 26
+TOK_SRC_IP (280) 27
+TOK_SRC_PORT (281) 28
+TOK_TCP_STATE (282) 29
+TOK_STRING (283) 17 18 50
+TOK_TCP_STATE_SYM (284) 46 47
+TOK_ACTIVE (285) 30
+TOK_BOOL (286) 30
+TOK_POLICY_SYMBOL (287) 11
+
+
+Nonterminals, with rules where they appear
+
+$accept (41)
+    on left: 0
+rule_list (42)
+    on left: 1 2, on right: 0 1
+rule (43)
+    on left: 4, on right: 1
+$@1 (44)
+    on left: 3, on right: 4
+rule_attr_list (45)
+    on left: 5 6, on right: 4 5
+rule_attr (46)
+    on left: 7 8 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27
+    28 29 30, on right: 5
+$@2 (47)
+    on left: 9, on right: 11
+$@3 (48)
+    on left: 10, on right: 11
+hdr_expr (49)
+    on left: 31 32, on right: 12
+value_list (50)
+    on left: 33 34 35 36, on right: 7 8 15 27 28 32 33 34
+value (51)
+    on left: 37 38, on right: 31 33 35
+rangeopt (52)
+    on left: 39 40 41, on right: 20
+range (53)
+    on left: 42 43, on right: 31 32 39
+ipoption_list (54)
+    on left: 44 45, on right: 13 44
+tcpstate_list (55)
+    on left: 46 47, on right: 29 46
+integer (56)
+    on left: 48 49, on right: 21 31 40 41 42 43
+string (57)
+    on left: 50 51, on right: 16
+pattern (58)
+    on left: 52 53, on right: 19 20
+
+
+state 0
+
+    0 $accept: . rule_list $end
+
+    $default  reduce using rule 2 (rule_list)
+
+    rule_list  go to state 1
+
+
+state 1
+
+    0 $accept: rule_list . $end
+    1 rule_list: rule_list . rule
+
+    $end           shift, and go to state 2
+    TOK_SIGNATURE  shift, and go to state 3
+
+    rule  go to state 4
+
+
+state 2
+
+    0 $accept: rule_list $end .
+
+    $default  accept
+
+
+state 3
+
+    4 rule: TOK_SIGNATURE . TOK_IDENT $@1 '{' rule_attr_list '}'
+
+    TOK_IDENT  shift, and go to state 5
+
+
+state 4
+
+    1 rule_list: rule_list rule .
+
+    $default  reduce using rule 1 (rule_list)
+
+
+state 5
+
+    4 rule: TOK_SIGNATURE TOK_IDENT . $@1 '{' rule_attr_list '}'
+
+    $default  reduce using rule 3 ($@1)
+
+    $@1  go to state 6
+
+
+state 6
+
+    4 rule: TOK_SIGNATURE TOK_IDENT $@1 . '{' rule_attr_list '}'
+
+    '{'  shift, and go to state 7
+
+
+state 7
+
+    4 rule: TOK_SIGNATURE TOK_IDENT $@1 '{' . rule_attr_list '}'
+
+    $default  reduce using rule 6 (rule_attr_list)
+
+    rule_attr_list  go to state 8
+
+
+state 8
+
+    4 rule: TOK_SIGNATURE TOK_IDENT $@1 '{' rule_attr_list . '}'
+    5 rule_attr_list: rule_attr_list . rule_attr
+
+    TOK_DISABLE                     shift, and go to state 9
+    TOK_DST_IP                      shift, and go to state 10
+    TOK_DST_PORT                    shift, and go to state 11
+    TOK_ENABLE                      shift, and go to state 12
+    TOK_EVAL                        shift, and go to state 13
+    TOK_EVENT                       shift, and go to state 14
+    TOK_HEADER                      shift, and go to state 15
+    TOK_IP_OPTIONS                  shift, and go to state 16
+    TOK_IP_PROTO                    shift, and go to state 17
+    TOK_PATTERN_TYPE                shift, and go to state 18
+    TOK_PAYLOAD_SIZE                shift, and go to state 19
+    TOK_REQUIRES_SIGNATURE          shift, and go to state 20
+    TOK_REQUIRES_REVERSE_SIGNATURE  shift, and go to state 21
+    TOK_SAME_IP                     shift, and go to state 22
+    TOK_SRC_IP                      shift, and go to state 23
+    TOK_SRC_PORT                    shift, and go to state 24
+    TOK_TCP_STATE                   shift, and go to state 25
+    TOK_ACTIVE                      shift, and go to state 26
+    '}'                             shift, and go to state 27
+
+    rule_attr  go to state 28
+
+
+state 9
+
+   18 rule_attr: TOK_DISABLE . TOK_STRING
+
+    TOK_STRING  shift, and go to state 29
+
+
+state 10
+
+    7 rule_attr: TOK_DST_IP . TOK_COMP value_list
+
+    TOK_COMP  shift, and go to state 30
+
+
+state 11
+
+    8 rule_attr: TOK_DST_PORT . TOK_COMP value_list
+
+    TOK_COMP  shift, and go to state 31
+
+
+state 12
+
+   17 rule_attr: TOK_ENABLE . TOK_STRING
+
+    TOK_STRING  shift, and go to state 32
+
+
+state 13
+
+   11 rule_attr: TOK_EVAL . $@2 TOK_POLICY_SYMBOL $@3
+
+    $default  reduce using rule 9 ($@2)
+
+    $@2  go to state 33
+
+
+state 14
+
+   16 rule_attr: TOK_EVENT . string
+
+    TOK_IDENT   shift, and go to state 34
+    TOK_STRING  shift, and go to state 35
+
+    string  go to state 36
+
+
+state 15
+
+   12 rule_attr: TOK_HEADER . hdr_expr
+
+    TOK_PROT  shift, and go to state 37
+
+    hdr_expr  go to state 38
+
+
+state 16
+
+   13 rule_attr: TOK_IP_OPTIONS . ipoption_list
+
+    TOK_IP_OPTION_SYM  shift, and go to state 39
+
+    ipoption_list  go to state 40
+
+
+state 17
+
+   14 rule_attr: TOK_IP_PROTO . TOK_COMP TOK_PROT
+   15          | TOK_IP_PROTO . TOK_COMP value_list
+
+    TOK_COMP  shift, and go to state 41
+
+
+state 18
+
+   19 rule_attr: TOK_PATTERN_TYPE . pattern
+   20          | TOK_PATTERN_TYPE . '[' rangeopt ']' pattern
+
+    TOK_IDENT    shift, and go to state 42
+    TOK_PATTERN  shift, and go to state 43
+    '['          shift, and go to state 44
+
+    pattern  go to state 45
+
+
+state 19
+
+   21 rule_attr: TOK_PAYLOAD_SIZE . TOK_COMP integer
+
+    TOK_COMP  shift, and go to state 46
+
+
+state 20
+
+   22 rule_attr: TOK_REQUIRES_SIGNATURE . TOK_IDENT
+   23          | TOK_REQUIRES_SIGNATURE . '!' TOK_IDENT
+
+    TOK_IDENT  shift, and go to state 47
+    '!'        shift, and go to state 48
+
+
+state 21
+
+   24 rule_attr: TOK_REQUIRES_REVERSE_SIGNATURE . TOK_IDENT
+   25          | TOK_REQUIRES_REVERSE_SIGNATURE . '!' TOK_IDENT
+
+    TOK_IDENT  shift, and go to state 49
+    '!'        shift, and go to state 50
+
+
+state 22
+
+   26 rule_attr: TOK_SAME_IP .
+
+    $default  reduce using rule 26 (rule_attr)
+
+
+state 23
+
+   27 rule_attr: TOK_SRC_IP . TOK_COMP value_list
+
+    TOK_COMP  shift, and go to state 51
+
+
+state 24
+
+   28 rule_attr: TOK_SRC_PORT . TOK_COMP value_list
+
+    TOK_COMP  shift, and go to state 52
+
+
+state 25
+
+   29 rule_attr: TOK_TCP_STATE . tcpstate_list
+
+    TOK_TCP_STATE_SYM  shift, and go to state 53
+
+    tcpstate_list  go to state 54
+
+
+state 26
+
+   30 rule_attr: TOK_ACTIVE . TOK_BOOL
+
+    TOK_BOOL  shift, and go to state 55
+
+
+state 27
+
+    4 rule: TOK_SIGNATURE TOK_IDENT $@1 '{' rule_attr_list '}' .
+
+    $default  reduce using rule 4 (rule)
+
+
+state 28
+
+    5 rule_attr_list: rule_attr_list rule_attr .
+
+    $default  reduce using rule 5 (rule_attr_list)
+
+
+state 29
+
+   18 rule_attr: TOK_DISABLE TOK_STRING .
+
+    $default  reduce using rule 18 (rule_attr)
+
+
+state 30
+
+    7 rule_attr: TOK_DST_IP TOK_COMP . value_list
+
+    TOK_IDENT  shift, and go to state 56
+    TOK_INT    shift, and go to state 57
+    TOK_IP     shift, and go to state 58
+
+    value_list  go to state 59
+    value       go to state 60
+
+
+state 31
+
+    8 rule_attr: TOK_DST_PORT TOK_COMP . value_list
+
+    TOK_IDENT  shift, and go to state 56
+    TOK_INT    shift, and go to state 57
+    TOK_IP     shift, and go to state 58
+
+    value_list  go to state 61
+    value       go to state 60
+
+
+state 32
+
+   17 rule_attr: TOK_ENABLE TOK_STRING .
+
+    $default  reduce using rule 17 (rule_attr)
+
+
+state 33
+
+   11 rule_attr: TOK_EVAL $@2 . TOK_POLICY_SYMBOL $@3
+
+    TOK_POLICY_SYMBOL  shift, and go to state 62
+
+
+state 34
+
+   51 string: TOK_IDENT .
+
+    $default  reduce using rule 51 (string)
+
+
+state 35
+
+   50 string: TOK_STRING .
+
+    $default  reduce using rule 50 (string)
+
+
+state 36
+
+   16 rule_attr: TOK_EVENT string .
+
+    $default  reduce using rule 16 (rule_attr)
+
+
+state 37
+
+   31 hdr_expr: TOK_PROT . '[' range ']' '&' integer TOK_COMP value
+   32         | TOK_PROT . '[' range ']' TOK_COMP value_list
+
+    '['  shift, and go to state 63
+
+
+state 38
+
+   12 rule_attr: TOK_HEADER hdr_expr .
+
+    $default  reduce using rule 12 (rule_attr)
+
+
+state 39
+
+   45 ipoption_list: TOK_IP_OPTION_SYM .
+
+    $default  reduce using rule 45 (ipoption_list)
+
+
+state 40
+
+   13 rule_attr: TOK_IP_OPTIONS ipoption_list .
+   44 ipoption_list: ipoption_list . ',' TOK_IP_OPTION_SYM
+
+    ','  shift, and go to state 64
+
+    $default  reduce using rule 13 (rule_attr)
+
+
+state 41
+
+   14 rule_attr: TOK_IP_PROTO TOK_COMP . TOK_PROT
+   15          | TOK_IP_PROTO TOK_COMP . value_list
+
+    TOK_IDENT  shift, and go to state 56
+    TOK_INT    shift, and go to state 57
+    TOK_IP     shift, and go to state 58
+    TOK_PROT   shift, and go to state 65
+
+    value_list  go to state 66
+    value       go to state 60
+
+
+state 42
+
+   53 pattern: TOK_IDENT .
+
+    $default  reduce using rule 53 (pattern)
+
+
+state 43
+
+   52 pattern: TOK_PATTERN .
+
+    $default  reduce using rule 52 (pattern)
+
+
+state 44
+
+   20 rule_attr: TOK_PATTERN_TYPE '[' . rangeopt ']' pattern
+
+    TOK_IDENT  shift, and go to state 67
+    TOK_INT    shift, and go to state 68
+    ':'        shift, and go to state 69
+
+    rangeopt  go to state 70
+    range     go to state 71
+    integer   go to state 72
+
+
+state 45
+
+   19 rule_attr: TOK_PATTERN_TYPE pattern .
+
+    $default  reduce using rule 19 (rule_attr)
+
+
+state 46
+
+   21 rule_attr: TOK_PAYLOAD_SIZE TOK_COMP . integer
+
+    TOK_IDENT  shift, and go to state 67
+    TOK_INT    shift, and go to state 68
+
+    integer  go to state 73
+
+
+state 47
+
+   22 rule_attr: TOK_REQUIRES_SIGNATURE TOK_IDENT .
+
+    $default  reduce using rule 22 (rule_attr)
+
+
+state 48
+
+   23 rule_attr: TOK_REQUIRES_SIGNATURE '!' . TOK_IDENT
+
+    TOK_IDENT  shift, and go to state 74
+
+
+state 49
+
+   24 rule_attr: TOK_REQUIRES_REVERSE_SIGNATURE TOK_IDENT .
+
+    $default  reduce using rule 24 (rule_attr)
+
+
+state 50
+
+   25 rule_attr: TOK_REQUIRES_REVERSE_SIGNATURE '!' . TOK_IDENT
+
+    TOK_IDENT  shift, and go to state 75
+
+
+state 51
+
+   27 rule_attr: TOK_SRC_IP TOK_COMP . value_list
+
+    TOK_IDENT  shift, and go to state 56
+    TOK_INT    shift, and go to state 57
+    TOK_IP     shift, and go to state 58
+
+    value_list  go to state 76
+    value       go to state 60
+
+
+state 52
+
+   28 rule_attr: TOK_SRC_PORT TOK_COMP . value_list
+
+    TOK_IDENT  shift, and go to state 56
+    TOK_INT    shift, and go to state 57
+    TOK_IP     shift, and go to state 58
+
+    value_list  go to state 77
+    value       go to state 60
+
+
+state 53
+
+   47 tcpstate_list: TOK_TCP_STATE_SYM .
+
+    $default  reduce using rule 47 (tcpstate_list)
+
+
+state 54
+
+   29 rule_attr: TOK_TCP_STATE tcpstate_list .
+   46 tcpstate_list: tcpstate_list . ',' TOK_TCP_STATE_SYM
+
+    ','  shift, and go to state 78
+
+    $default  reduce using rule 29 (rule_attr)
+
+
+state 55
+
+   30 rule_attr: TOK_ACTIVE TOK_BOOL .
+
+    $default  reduce using rule 30 (rule_attr)
+
+
+state 56
+
+   36 value_list: TOK_IDENT .
+
+    $default  reduce using rule 36 (value_list)
+
+
+state 57
+
+   37 value: TOK_INT .
+
+    $default  reduce using rule 37 (value)
+
+
+state 58
+
+   38 value: TOK_IP .
+
+    $default  reduce using rule 38 (value)
+
+
+state 59
+
+    7 rule_attr: TOK_DST_IP TOK_COMP value_list .
+   33 value_list: value_list . ',' value
+   34           | value_list . ',' TOK_IDENT
+
+    ','  shift, and go to state 79
+
+    $default  reduce using rule 7 (rule_attr)
+
+
+state 60
+
+   35 value_list: value .
+
+    $default  reduce using rule 35 (value_list)
+
+
+state 61
+
+    8 rule_attr: TOK_DST_PORT TOK_COMP value_list .
+   33 value_list: value_list . ',' value
+   34           | value_list . ',' TOK_IDENT
+
+    ','  shift, and go to state 79
+
+    $default  reduce using rule 8 (rule_attr)
+
+
+state 62
+
+   11 rule_attr: TOK_EVAL $@2 TOK_POLICY_SYMBOL . $@3
+
+    $default  reduce using rule 10 ($@3)
+
+    $@3  go to state 80
+
+
+state 63
+
+   31 hdr_expr: TOK_PROT '[' . range ']' '&' integer TOK_COMP value
+   32         | TOK_PROT '[' . range ']' TOK_COMP value_list
+
+    TOK_IDENT  shift, and go to state 67
+    TOK_INT    shift, and go to state 68
+
+    range    go to state 81
+    integer  go to state 82
+
+
+state 64
+
+   44 ipoption_list: ipoption_list ',' . TOK_IP_OPTION_SYM
+
+    TOK_IP_OPTION_SYM  shift, and go to state 83
+
+
+state 65
+
+   14 rule_attr: TOK_IP_PROTO TOK_COMP TOK_PROT .
+
+    $default  reduce using rule 14 (rule_attr)
+
+
+state 66
+
+   15 rule_attr: TOK_IP_PROTO TOK_COMP value_list .
+   33 value_list: value_list . ',' value
+   34           | value_list . ',' TOK_IDENT
+
+    ','  shift, and go to state 79
+
+    $default  reduce using rule 15 (rule_attr)
+
+
+state 67
+
+   49 integer: TOK_IDENT .
+
+    $default  reduce using rule 49 (integer)
+
+
+state 68
+
+   48 integer: TOK_INT .
+
+    $default  reduce using rule 48 (integer)
+
+
+state 69
+
+   40 rangeopt: ':' . integer
+
+    TOK_IDENT  shift, and go to state 67
+    TOK_INT    shift, and go to state 68
+
+    integer  go to state 84
+
+
+state 70
+
+   20 rule_attr: TOK_PATTERN_TYPE '[' rangeopt . ']' pattern
+
+    ']'  shift, and go to state 85
+
+
+state 71
+
+   39 rangeopt: range .
+
+    $default  reduce using rule 39 (rangeopt)
+
+
+state 72
+
+   41 rangeopt: integer . ':'
+   42 range: integer .
+   43      | integer . ':' integer
+
+    ':'  shift, and go to state 86
+
+    $default  reduce using rule 42 (range)
+
+
+state 73
+
+   21 rule_attr: TOK_PAYLOAD_SIZE TOK_COMP integer .
+
+    $default  reduce using rule 21 (rule_attr)
+
+
+state 74
+
+   23 rule_attr: TOK_REQUIRES_SIGNATURE '!' TOK_IDENT .
+
+    $default  reduce using rule 23 (rule_attr)
+
+
+state 75
+
+   25 rule_attr: TOK_REQUIRES_REVERSE_SIGNATURE '!' TOK_IDENT .
+
+    $default  reduce using rule 25 (rule_attr)
+
+
+state 76
+
+   27 rule_attr: TOK_SRC_IP TOK_COMP value_list .
+   33 value_list: value_list . ',' value
+   34           | value_list . ',' TOK_IDENT
+
+    ','  shift, and go to state 79
+
+    $default  reduce using rule 27 (rule_attr)
+
+
+state 77
+
+   28 rule_attr: TOK_SRC_PORT TOK_COMP value_list .
+   33 value_list: value_list . ',' value
+   34           | value_list . ',' TOK_IDENT
+
+    ','  shift, and go to state 79
+
+    $default  reduce using rule 28 (rule_attr)
+
+
+state 78
+
+   46 tcpstate_list: tcpstate_list ',' . TOK_TCP_STATE_SYM
+
+    TOK_TCP_STATE_SYM  shift, and go to state 87
+
+
+state 79
+
+   33 value_list: value_list ',' . value
+   34           | value_list ',' . TOK_IDENT
+
+    TOK_IDENT  shift, and go to state 88
+    TOK_INT    shift, and go to state 57
+    TOK_IP     shift, and go to state 58
+
+    value  go to state 89
+
+
+state 80
+
+   11 rule_attr: TOK_EVAL $@2 TOK_POLICY_SYMBOL $@3 .
+
+    $default  reduce using rule 11 (rule_attr)
+
+
+state 81
+
+   31 hdr_expr: TOK_PROT '[' range . ']' '&' integer TOK_COMP value
+   32         | TOK_PROT '[' range . ']' TOK_COMP value_list
+
+    ']'  shift, and go to state 90
+
+
+state 82
+
+   42 range: integer .
+   43      | integer . ':' integer
+
+    ':'  shift, and go to state 91
+
+    $default  reduce using rule 42 (range)
+
+
+state 83
+
+   44 ipoption_list: ipoption_list ',' TOK_IP_OPTION_SYM .
+
+    $default  reduce using rule 44 (ipoption_list)
+
+
+state 84
+
+   40 rangeopt: ':' integer .
+
+    $default  reduce using rule 40 (rangeopt)
+
+
+state 85
+
+   20 rule_attr: TOK_PATTERN_TYPE '[' rangeopt ']' . pattern
+
+    TOK_IDENT    shift, and go to state 42
+    TOK_PATTERN  shift, and go to state 43
+
+    pattern  go to state 92
+
+
+state 86
+
+   41 rangeopt: integer ':' .
+   43 range: integer ':' . integer
+
+    TOK_IDENT  shift, and go to state 67
+    TOK_INT    shift, and go to state 68
+
+    $default  reduce using rule 41 (rangeopt)
+
+    integer  go to state 93
+
+
+state 87
+
+   46 tcpstate_list: tcpstate_list ',' TOK_TCP_STATE_SYM .
+
+    $default  reduce using rule 46 (tcpstate_list)
+
+
+state 88
+
+   34 value_list: value_list ',' TOK_IDENT .
+
+    $default  reduce using rule 34 (value_list)
+
+
+state 89
+
+   33 value_list: value_list ',' value .
+
+    $default  reduce using rule 33 (value_list)
+
+
+state 90
+
+   31 hdr_expr: TOK_PROT '[' range ']' . '&' integer TOK_COMP value
+   32         | TOK_PROT '[' range ']' . TOK_COMP value_list
+
+    TOK_COMP  shift, and go to state 94
+    '&'       shift, and go to state 95
+
+
+state 91
+
+   43 range: integer ':' . integer
+
+    TOK_IDENT  shift, and go to state 67
+    TOK_INT    shift, and go to state 68
+
+    integer  go to state 93
+
+
+state 92
+
+   20 rule_attr: TOK_PATTERN_TYPE '[' rangeopt ']' pattern .
+
+    $default  reduce using rule 20 (rule_attr)
+
+
+state 93
+
+   43 range: integer ':' integer .
+
+    $default  reduce using rule 43 (range)
+
+
+state 94
+
+   32 hdr_expr: TOK_PROT '[' range ']' TOK_COMP . value_list
+
+    TOK_IDENT  shift, and go to state 56
+    TOK_INT    shift, and go to state 57
+    TOK_IP     shift, and go to state 58
+
+    value_list  go to state 96
+    value       go to state 60
+
+
+state 95
+
+   31 hdr_expr: TOK_PROT '[' range ']' '&' . integer TOK_COMP value
+
+    TOK_IDENT  shift, and go to state 67
+    TOK_INT    shift, and go to state 68
+
+    integer  go to state 97
+
+
+state 96
+
+   32 hdr_expr: TOK_PROT '[' range ']' TOK_COMP value_list .
+   33 value_list: value_list . ',' value
+   34           | value_list . ',' TOK_IDENT
+
+    ','  shift, and go to state 79
+
+    $default  reduce using rule 32 (hdr_expr)
+
+
+state 97
+
+   31 hdr_expr: TOK_PROT '[' range ']' '&' integer . TOK_COMP value
+
+    TOK_COMP  shift, and go to state 98
+
+
+state 98
+
+   31 hdr_expr: TOK_PROT '[' range ']' '&' integer TOK_COMP . value
+
+    TOK_INT  shift, and go to state 57
+    TOK_IP   shift, and go to state 58
+
+    value  go to state 99
+
+
+state 99
+
+   31 hdr_expr: TOK_PROT '[' range ']' '&' integer TOK_COMP value .
+
+    $default  reduce using rule 31 (hdr_expr)

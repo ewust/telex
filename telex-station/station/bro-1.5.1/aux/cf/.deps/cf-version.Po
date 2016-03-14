@@ -1,0 +1,1 @@
+cf-version.o: version.c

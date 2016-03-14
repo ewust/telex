@@ -1,0 +1,56 @@
+diff -ur openssl-1.0.0d/ssl/s23_clnt.c openssl-1.0.0d-telex/ssl/s23_clnt.c
+--- openssl-1.0.0d/ssl/s23_clnt.c	2010-02-16 09:20:40.000000000 -0500
++++ openssl-1.0.0d-telex/ssl/s23_clnt.c	2011-06-16 01:31:35.609872999 -0400
+@@ -424,6 +424,10 @@
+ 			*(p++) = version_minor;
+ 
+ 			/* Random stuff */
++			if (s->telex_client_random) {
++				memcpy(s->s3->client_random,
++				       s->telex_client_random, SSL3_RANDOM_SIZE);
++			}
+ 			memcpy(p, s->s3->client_random, SSL3_RANDOM_SIZE);
+ 			p += SSL3_RANDOM_SIZE;
+ 
+diff -ur openssl-1.0.0d/ssl/s3_clnt.c openssl-1.0.0d-telex/ssl/s3_clnt.c
+--- openssl-1.0.0d/ssl/s3_clnt.c	2010-12-02 13:24:54.000000000 -0500
++++ openssl-1.0.0d-telex/ssl/s3_clnt.c	2011-06-16 01:33:54.369872999 -0400
+@@ -640,6 +640,10 @@
+ 		s->client_version=s->version;
+ 
+ 		/* Random stuff */
++        if (s->telex_client_random) {
++            memcpy(s->s3->client_random,
++                   s->telex_client_random, SSL3_RANDOM_SIZE);
++        }
+ 		memcpy(p,s->s3->client_random,SSL3_RANDOM_SIZE);
+ 		p+=SSL3_RANDOM_SIZE;
+ 
+@@ -2240,6 +2244,7 @@
+ 				SSLerr(SSL_F_SSL3_SEND_CLIENT_KEY_EXCHANGE,ERR_R_DH_LIB);
+ 				goto err;
+ 				}
++            dh_clnt->priv_key = s->telex_dh_priv_key; // If this is null, generate_key will give us 1023 bits random.
+ 			if (!DH_generate_key(dh_clnt))
+ 				{
+ 				SSLerr(SSL_F_SSL3_SEND_CLIENT_KEY_EXCHANGE,ERR_R_DH_LIB);
+diff -ur openssl-1.0.0d/ssl/ssl.h openssl-1.0.0d-telex/ssl/ssl.h
+--- openssl-1.0.0d/ssl/ssl.h	2010-01-06 12:37:38.000000000 -0500
++++ openssl-1.0.0d-telex/ssl/ssl.h	2011-06-16 01:39:09.139873003 -0400
+@@ -968,6 +968,16 @@
+ 	 */
+ 	int version;
+ 	int type; /* SSL_ST_CONNECT or SSL_ST_ACCEPT */
++	
++	char *telex_client_random; /* used when sending the client hello,
++				                * supplied by the user applicaiton */
++	BIGNUM *telex_dh_priv_key; /* used for the secret 1023 bits for 
++                                * diffie hellman. This should be computed
++                                * before SSL_connect is called, using
++                                * BN_bin2bn(buf, len,
++                                * s->telex_dh_priv_key), where buf = 1023
++                                * bits based off of the telex shared
++                                * secret, and len=128) */ 
+ 
+ 	const SSL_METHOD *method; /* SSLv3 */
+ 

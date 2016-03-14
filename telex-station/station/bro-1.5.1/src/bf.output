@@ -1,0 +1,1521 @@
+Grammar
+
+    0 $accept: definitions $end
+
+    1 definitions: definitions definition opt_ws
+    2            | opt_ws
+
+    3 definition: event_def
+    4           | func_def
+    5           | rewriter_def
+    6           | c_code_segment
+    7           | enum_def
+    8           | const_def
+    9           | declare_def
+
+   10 declare_def: TOK_DECLARE opt_ws TOK_ENUM opt_ws TOK_ID opt_ws ';'
+
+   11 event_def: event_prefix opt_ws plain_head opt_attr end_of_head ';'
+
+   12 func_def: func_prefix opt_ws typed_head end_of_head body
+
+   13 rewriter_def: rewriter_prefix opt_ws plain_head end_of_head body
+
+   14 enum_def: enum_def_1 enum_list TOK_RPB
+
+   15 enum_def_1: TOK_ENUM opt_ws TOK_ID opt_ws TOK_LPB opt_ws
+
+   16 enum_list: enum_list TOK_ID opt_ws ',' opt_ws
+   17          | /* empty */
+
+   18 const_def: const_def_1 const_init opt_attr ';'
+
+   19 const_def_1: TOK_CONST opt_ws TOK_ID opt_ws
+
+   20 opt_const_init: /* empty */
+   21               | const_init
+
+   22 const_init: '=' opt_ws TOK_BOOL opt_ws
+   23           | '=' opt_ws TOK_CSTR opt_ws
+
+   24 opt_attr: /* empty */
+
+   25 $@1: /* empty */
+
+   26 opt_attr: opt_attr TOK_ATTR $@1 opt_ws opt_const_init
+
+   27 func_prefix: TOK_FUNCTION
+
+   28 rewriter_prefix: TOK_REWRITER
+
+   29 event_prefix: TOK_EVENT
+
+   30 end_of_head: /* empty */
+
+   31 typed_head: plain_head return_type
+
+   32 plain_head: head_1 args arg_end opt_ws
+
+   33 head_1: TOK_ID opt_ws arg_begin
+
+   34 arg_begin: TOK_LPP
+
+   35 arg_end: TOK_RPP
+
+   36 args: args_1
+   37     | opt_ws
+
+   38 args_1: args_1 ',' opt_ws arg opt_ws
+   39       | opt_ws arg opt_ws
+
+   40 arg: TOK_ID opt_ws ':' opt_ws TOK_ID
+   41    | TOK_VAR_ARG
+
+   42 return_type: ':' opt_ws TOK_ID opt_ws
+
+   43 body: body_start c_body body_end
+
+   44 c_code_begin: /* empty */
+
+   45 c_code_end: /* empty */
+
+   46 body_start: TOK_LPB c_code_begin
+
+   47 body_end: TOK_RPB c_code_end
+
+   48 c_code_segment: TOK_LPPB c_code_begin c_body c_code_end TOK_RPPB
+
+   49 c_body: opt_ws
+   50       | c_body c_atom opt_ws
+
+   51 c_atom: TOK_ID
+   52       | TOK_C_TOKEN
+   53       | TOK_ARG
+   54       | TOK_ARGS
+   55       | TOK_ARGC
+   56       | TOK_TRACE
+   57       | TOK_WRITE
+   58       | TOK_PUSH
+   59       | TOK_EOF
+   60       | TOK_CSTR
+   61       | TOK_ATOM
+
+   62 opt_ws: opt_ws TOK_WS
+   63       | opt_ws TOK_LF
+   64       | opt_ws TOK_COMMENT
+   65       | /* empty */
+
+
+Terminals, with rules where they appear
+
+$end (0) 0
+',' (44) 16 38
+':' (58) 40 42
+';' (59) 10 11 18
+'=' (61) 22 23
+error (256)
+TOK_LPP (258) 34
+TOK_RPP (259) 35
+TOK_LPB (260) 15 46
+TOK_RPB (261) 14 47
+TOK_LPPB (262) 48
+TOK_RPPB (263) 48
+TOK_VAR_ARG (264) 41
+TOK_BOOL (265) 22
+TOK_FUNCTION (266) 27
+TOK_REWRITER (267) 28
+TOK_EVENT (268) 29
+TOK_CONST (269) 19
+TOK_ENUM (270) 10 15
+TOK_DECLARE (271) 10
+TOK_WRITE (272) 57
+TOK_PUSH (273) 58
+TOK_EOF (274) 59
+TOK_TRACE (275) 56
+TOK_ARGS (276) 54
+TOK_ARG (277) 53
+TOK_ARGC (278) 55
+TOK_ID (279) 10 15 16 19 33 40 42 51
+TOK_ATTR (280) 26
+TOK_CSTR (281) 23 60
+TOK_LF (282) 63
+TOK_WS (283) 62
+TOK_COMMENT (284) 64
+TOK_ATOM (285) 61
+TOK_C_TOKEN (286) 52
+
+
+Nonterminals, with rules where they appear
+
+$accept (36)
+    on left: 0
+definitions (37)
+    on left: 1 2, on right: 0 1
+definition (38)
+    on left: 3 4 5 6 7 8 9, on right: 1
+declare_def (39)
+    on left: 10, on right: 9
+event_def (40)
+    on left: 11, on right: 3
+func_def (41)
+    on left: 12, on right: 4
+rewriter_def (42)
+    on left: 13, on right: 5
+enum_def (43)
+    on left: 14, on right: 7
+enum_def_1 (44)
+    on left: 15, on right: 14
+enum_list (45)
+    on left: 16 17, on right: 14 16
+const_def (46)
+    on left: 18, on right: 8
+const_def_1 (47)
+    on left: 19, on right: 18
+opt_const_init (48)
+    on left: 20 21, on right: 26
+const_init (49)
+    on left: 22 23, on right: 18 21
+opt_attr (50)
+    on left: 24 26, on right: 11 18 26
+$@1 (51)
+    on left: 25, on right: 26
+func_prefix (52)
+    on left: 27, on right: 12
+rewriter_prefix (53)
+    on left: 28, on right: 13
+event_prefix (54)
+    on left: 29, on right: 11
+end_of_head (55)
+    on left: 30, on right: 11 12 13
+typed_head (56)
+    on left: 31, on right: 12
+plain_head (57)
+    on left: 32, on right: 11 13 31
+head_1 (58)
+    on left: 33, on right: 32
+arg_begin (59)
+    on left: 34, on right: 33
+arg_end (60)
+    on left: 35, on right: 32
+args (61)
+    on left: 36 37, on right: 32
+args_1 (62)
+    on left: 38 39, on right: 36 38
+arg (63)
+    on left: 40 41, on right: 38 39
+return_type (64)
+    on left: 42, on right: 31
+body (65)
+    on left: 43, on right: 12 13
+c_code_begin (66)
+    on left: 44, on right: 46 48
+c_code_end (67)
+    on left: 45, on right: 47 48
+body_start (68)
+    on left: 46, on right: 43
+body_end (69)
+    on left: 47, on right: 43
+c_code_segment (70)
+    on left: 48, on right: 6
+c_body (71)
+    on left: 49 50, on right: 43 48 50
+c_atom (72)
+    on left: 51 52 53 54 55 56 57 58 59 60 61, on right: 50
+opt_ws (73)
+    on left: 62 63 64 65, on right: 1 2 10 11 12 13 15 16 19 22 23
+    26 32 33 37 38 39 40 42 49 50 62 63 64
+
+
+state 0
+
+    0 $accept: . definitions $end
+
+    $default  reduce using rule 65 (opt_ws)
+
+    definitions  go to state 1
+    opt_ws       go to state 2
+
+
+state 1
+
+    0 $accept: definitions . $end
+    1 definitions: definitions . definition opt_ws
+
+    $end          shift, and go to state 3
+    TOK_LPPB      shift, and go to state 4
+    TOK_FUNCTION  shift, and go to state 5
+    TOK_REWRITER  shift, and go to state 6
+    TOK_EVENT     shift, and go to state 7
+    TOK_CONST     shift, and go to state 8
+    TOK_ENUM      shift, and go to state 9
+    TOK_DECLARE   shift, and go to state 10
+
+    definition       go to state 11
+    declare_def      go to state 12
+    event_def        go to state 13
+    func_def         go to state 14
+    rewriter_def     go to state 15
+    enum_def         go to state 16
+    enum_def_1       go to state 17
+    const_def        go to state 18
+    const_def_1      go to state 19
+    func_prefix      go to state 20
+    rewriter_prefix  go to state 21
+    event_prefix     go to state 22
+    c_code_segment   go to state 23
+
+
+state 2
+
+    2 definitions: opt_ws .
+   62 opt_ws: opt_ws . TOK_WS
+   63       | opt_ws . TOK_LF
+   64       | opt_ws . TOK_COMMENT
+
+    TOK_LF       shift, and go to state 24
+    TOK_WS       shift, and go to state 25
+    TOK_COMMENT  shift, and go to state 26
+
+    $default  reduce using rule 2 (definitions)
+
+
+state 3
+
+    0 $accept: definitions $end .
+
+    $default  accept
+
+
+state 4
+
+   48 c_code_segment: TOK_LPPB . c_code_begin c_body c_code_end TOK_RPPB
+
+    $default  reduce using rule 44 (c_code_begin)
+
+    c_code_begin  go to state 27
+
+
+state 5
+
+   27 func_prefix: TOK_FUNCTION .
+
+    $default  reduce using rule 27 (func_prefix)
+
+
+state 6
+
+   28 rewriter_prefix: TOK_REWRITER .
+
+    $default  reduce using rule 28 (rewriter_prefix)
+
+
+state 7
+
+   29 event_prefix: TOK_EVENT .
+
+    $default  reduce using rule 29 (event_prefix)
+
+
+state 8
+
+   19 const_def_1: TOK_CONST . opt_ws TOK_ID opt_ws
+
+    $default  reduce using rule 65 (opt_ws)
+
+    opt_ws  go to state 28
+
+
+state 9
+
+   15 enum_def_1: TOK_ENUM . opt_ws TOK_ID opt_ws TOK_LPB opt_ws
+
+    $default  reduce using rule 65 (opt_ws)
+
+    opt_ws  go to state 29
+
+
+state 10
+
+   10 declare_def: TOK_DECLARE . opt_ws TOK_ENUM opt_ws TOK_ID opt_ws ';'
+
+    $default  reduce using rule 65 (opt_ws)
+
+    opt_ws  go to state 30
+
+
+state 11
+
+    1 definitions: definitions definition . opt_ws
+
+    $default  reduce using rule 65 (opt_ws)
+
+    opt_ws  go to state 31
+
+
+state 12
+
+    9 definition: declare_def .
+
+    $default  reduce using rule 9 (definition)
+
+
+state 13
+
+    3 definition: event_def .
+
+    $default  reduce using rule 3 (definition)
+
+
+state 14
+
+    4 definition: func_def .
+
+    $default  reduce using rule 4 (definition)
+
+
+state 15
+
+    5 definition: rewriter_def .
+
+    $default  reduce using rule 5 (definition)
+
+
+state 16
+
+    7 definition: enum_def .
+
+    $default  reduce using rule 7 (definition)
+
+
+state 17
+
+   14 enum_def: enum_def_1 . enum_list TOK_RPB
+
+    $default  reduce using rule 17 (enum_list)
+
+    enum_list  go to state 32
+
+
+state 18
+
+    8 definition: const_def .
+
+    $default  reduce using rule 8 (definition)
+
+
+state 19
+
+   18 const_def: const_def_1 . const_init opt_attr ';'
+
+    '='  shift, and go to state 33
+
+    const_init  go to state 34
+
+
+state 20
+
+   12 func_def: func_prefix . opt_ws typed_head end_of_head body
+
+    $default  reduce using rule 65 (opt_ws)
+
+    opt_ws  go to state 35
+
+
+state 21
+
+   13 rewriter_def: rewriter_prefix . opt_ws plain_head end_of_head body
+
+    $default  reduce using rule 65 (opt_ws)
+
+    opt_ws  go to state 36
+
+
+state 22
+
+   11 event_def: event_prefix . opt_ws plain_head opt_attr end_of_head ';'
+
+    $default  reduce using rule 65 (opt_ws)
+
+    opt_ws  go to state 37
+
+
+state 23
+
+    6 definition: c_code_segment .
+
+    $default  reduce using rule 6 (definition)
+
+
+state 24
+
+   63 opt_ws: opt_ws TOK_LF .
+
+    $default  reduce using rule 63 (opt_ws)
+
+
+state 25
+
+   62 opt_ws: opt_ws TOK_WS .
+
+    $default  reduce using rule 62 (opt_ws)
+
+
+state 26
+
+   64 opt_ws: opt_ws TOK_COMMENT .
+
+    $default  reduce using rule 64 (opt_ws)
+
+
+state 27
+
+   48 c_code_segment: TOK_LPPB c_code_begin . c_body c_code_end TOK_RPPB
+
+    $default  reduce using rule 65 (opt_ws)
+
+    c_body  go to state 38
+    opt_ws  go to state 39
+
+
+state 28
+
+   19 const_def_1: TOK_CONST opt_ws . TOK_ID opt_ws
+   62 opt_ws: opt_ws . TOK_WS
+   63       | opt_ws . TOK_LF
+   64       | opt_ws . TOK_COMMENT
+
+    TOK_ID       shift, and go to state 40
+    TOK_LF       shift, and go to state 24
+    TOK_WS       shift, and go to state 25
+    TOK_COMMENT  shift, and go to state 26
+
+
+state 29
+
+   15 enum_def_1: TOK_ENUM opt_ws . TOK_ID opt_ws TOK_LPB opt_ws
+   62 opt_ws: opt_ws . TOK_WS
+   63       | opt_ws . TOK_LF
+   64       | opt_ws . TOK_COMMENT
+
+    TOK_ID       shift, and go to state 41
+    TOK_LF       shift, and go to state 24
+    TOK_WS       shift, and go to state 25
+    TOK_COMMENT  shift, and go to state 26
+
+
+state 30
+
+   10 declare_def: TOK_DECLARE opt_ws . TOK_ENUM opt_ws TOK_ID opt_ws ';'
+   62 opt_ws: opt_ws . TOK_WS
+   63       | opt_ws . TOK_LF
+   64       | opt_ws . TOK_COMMENT
+
+    TOK_ENUM     shift, and go to state 42
+    TOK_LF       shift, and go to state 24
+    TOK_WS       shift, and go to state 25
+    TOK_COMMENT  shift, and go to state 26
+
+
+state 31
+
+    1 definitions: definitions definition opt_ws .
+   62 opt_ws: opt_ws . TOK_WS
+   63       | opt_ws . TOK_LF
+   64       | opt_ws . TOK_COMMENT
+
+    TOK_LF       shift, and go to state 24
+    TOK_WS       shift, and go to state 25
+    TOK_COMMENT  shift, and go to state 26
+
+    $default  reduce using rule 1 (definitions)
+
+
+state 32
+
+   14 enum_def: enum_def_1 enum_list . TOK_RPB
+   16 enum_list: enum_list . TOK_ID opt_ws ',' opt_ws
+
+    TOK_RPB  shift, and go to state 43
+    TOK_ID   shift, and go to state 44
+
+
+state 33
+
+   22 const_init: '=' . opt_ws TOK_BOOL opt_ws
+   23           | '=' . opt_ws TOK_CSTR opt_ws
+
+    $default  reduce using rule 65 (opt_ws)
+
+    opt_ws  go to state 45
+
+
+state 34
+
+   18 const_def: const_def_1 const_init . opt_attr ';'
+
+    $default  reduce using rule 24 (opt_attr)
+
+    opt_attr  go to state 46
+
+
+state 35
+
+   12 func_def: func_prefix opt_ws . typed_head end_of_head body
+   62 opt_ws: opt_ws . TOK_WS
+   63       | opt_ws . TOK_LF
+   64       | opt_ws . TOK_COMMENT
+
+    TOK_ID       shift, and go to state 47
+    TOK_LF       shift, and go to state 24
+    TOK_WS       shift, and go to state 25
+    TOK_COMMENT  shift, and go to state 26
+
+    typed_head  go to state 48
+    plain_head  go to state 49
+    head_1      go to state 50
+
+
+state 36
+
+   13 rewriter_def: rewriter_prefix opt_ws . plain_head end_of_head body
+   62 opt_ws: opt_ws . TOK_WS
+   63       | opt_ws . TOK_LF
+   64       | opt_ws . TOK_COMMENT
+
+    TOK_ID       shift, and go to state 47
+    TOK_LF       shift, and go to state 24
+    TOK_WS       shift, and go to state 25
+    TOK_COMMENT  shift, and go to state 26
+
+    plain_head  go to state 51
+    head_1      go to state 50
+
+
+state 37
+
+   11 event_def: event_prefix opt_ws . plain_head opt_attr end_of_head ';'
+   62 opt_ws: opt_ws . TOK_WS
+   63       | opt_ws . TOK_LF
+   64       | opt_ws . TOK_COMMENT
+
+    TOK_ID       shift, and go to state 47
+    TOK_LF       shift, and go to state 24
+    TOK_WS       shift, and go to state 25
+    TOK_COMMENT  shift, and go to state 26
+
+    plain_head  go to state 52
+    head_1      go to state 50
+
+
+state 38
+
+   48 c_code_segment: TOK_LPPB c_code_begin c_body . c_code_end TOK_RPPB
+   50 c_body: c_body . c_atom opt_ws
+
+    TOK_WRITE    shift, and go to state 53
+    TOK_PUSH     shift, and go to state 54
+    TOK_EOF      shift, and go to state 55
+    TOK_TRACE    shift, and go to state 56
+    TOK_ARGS     shift, and go to state 57
+    TOK_ARG      shift, and go to state 58
+    TOK_ARGC     shift, and go to state 59
+    TOK_ID       shift, and go to state 60
+    TOK_CSTR     shift, and go to state 61
+    TOK_ATOM     shift, and go to state 62
+    TOK_C_TOKEN  shift, and go to state 63
+
+    $default  reduce using rule 45 (c_code_end)
+
+    c_code_end  go to state 64
+    c_atom      go to state 65
+
+
+state 39
+
+   49 c_body: opt_ws .
+   62 opt_ws: opt_ws . TOK_WS
+   63       | opt_ws . TOK_LF
+   64       | opt_ws . TOK_COMMENT
+
+    TOK_LF       shift, and go to state 24
+    TOK_WS       shift, and go to state 25
+    TOK_COMMENT  shift, and go to state 26
+
+    $default  reduce using rule 49 (c_body)
+
+
+state 40
+
+   19 const_def_1: TOK_CONST opt_ws TOK_ID . opt_ws
+
+    $default  reduce using rule 65 (opt_ws)
+
+    opt_ws  go to state 66
+
+
+state 41
+
+   15 enum_def_1: TOK_ENUM opt_ws TOK_ID . opt_ws TOK_LPB opt_ws
+
+    $default  reduce using rule 65 (opt_ws)
+
+    opt_ws  go to state 67
+
+
+state 42
+
+   10 declare_def: TOK_DECLARE opt_ws TOK_ENUM . opt_ws TOK_ID opt_ws ';'
+
+    $default  reduce using rule 65 (opt_ws)
+
+    opt_ws  go to state 68
+
+
+state 43
+
+   14 enum_def: enum_def_1 enum_list TOK_RPB .
+
+    $default  reduce using rule 14 (enum_def)
+
+
+state 44
+
+   16 enum_list: enum_list TOK_ID . opt_ws ',' opt_ws
+
+    $default  reduce using rule 65 (opt_ws)
+
+    opt_ws  go to state 69
+
+
+state 45
+
+   22 const_init: '=' opt_ws . TOK_BOOL opt_ws
+   23           | '=' opt_ws . TOK_CSTR opt_ws
+   62 opt_ws: opt_ws . TOK_WS
+   63       | opt_ws . TOK_LF
+   64       | opt_ws . TOK_COMMENT
+
+    TOK_BOOL     shift, and go to state 70
+    TOK_CSTR     shift, and go to state 71
+    TOK_LF       shift, and go to state 24
+    TOK_WS       shift, and go to state 25
+    TOK_COMMENT  shift, and go to state 26
+
+
+state 46
+
+   18 const_def: const_def_1 const_init opt_attr . ';'
+   26 opt_attr: opt_attr . TOK_ATTR $@1 opt_ws opt_const_init
+
+    TOK_ATTR  shift, and go to state 72
+    ';'       shift, and go to state 73
+
+
+state 47
+
+   33 head_1: TOK_ID . opt_ws arg_begin
+
+    $default  reduce using rule 65 (opt_ws)
+
+    opt_ws  go to state 74
+
+
+state 48
+
+   12 func_def: func_prefix opt_ws typed_head . end_of_head body
+
+    $default  reduce using rule 30 (end_of_head)
+
+    end_of_head  go to state 75
+
+
+state 49
+
+   31 typed_head: plain_head . return_type
+
+    ':'  shift, and go to state 76
+
+    return_type  go to state 77
+
+
+state 50
+
+   32 plain_head: head_1 . args arg_end opt_ws
+
+    $default  reduce using rule 65 (opt_ws)
+
+    args    go to state 78
+    args_1  go to state 79
+    opt_ws  go to state 80
+
+
+state 51
+
+   13 rewriter_def: rewriter_prefix opt_ws plain_head . end_of_head body
+
+    $default  reduce using rule 30 (end_of_head)
+
+    end_of_head  go to state 81
+
+
+state 52
+
+   11 event_def: event_prefix opt_ws plain_head . opt_attr end_of_head ';'
+
+    $default  reduce using rule 24 (opt_attr)
+
+    opt_attr  go to state 82
+
+
+state 53
+
+   57 c_atom: TOK_WRITE .
+
+    $default  reduce using rule 57 (c_atom)
+
+
+state 54
+
+   58 c_atom: TOK_PUSH .
+
+    $default  reduce using rule 58 (c_atom)
+
+
+state 55
+
+   59 c_atom: TOK_EOF .
+
+    $default  reduce using rule 59 (c_atom)
+
+
+state 56
+
+   56 c_atom: TOK_TRACE .
+
+    $default  reduce using rule 56 (c_atom)
+
+
+state 57
+
+   54 c_atom: TOK_ARGS .
+
+    $default  reduce using rule 54 (c_atom)
+
+
+state 58
+
+   53 c_atom: TOK_ARG .
+
+    $default  reduce using rule 53 (c_atom)
+
+
+state 59
+
+   55 c_atom: TOK_ARGC .
+
+    $default  reduce using rule 55 (c_atom)
+
+
+state 60
+
+   51 c_atom: TOK_ID .
+
+    $default  reduce using rule 51 (c_atom)
+
+
+state 61
+
+   60 c_atom: TOK_CSTR .
+
+    $default  reduce using rule 60 (c_atom)
+
+
+state 62
+
+   61 c_atom: TOK_ATOM .
+
+    $default  reduce using rule 61 (c_atom)
+
+
+state 63
+
+   52 c_atom: TOK_C_TOKEN .
+
+    $default  reduce using rule 52 (c_atom)
+
+
+state 64
+
+   48 c_code_segment: TOK_LPPB c_code_begin c_body c_code_end . TOK_RPPB
+
+    TOK_RPPB  shift, and go to state 83
+
+
+state 65
+
+   50 c_body: c_body c_atom . opt_ws
+
+    $default  reduce using rule 65 (opt_ws)
+
+    opt_ws  go to state 84
+
+
+state 66
+
+   19 const_def_1: TOK_CONST opt_ws TOK_ID opt_ws .
+   62 opt_ws: opt_ws . TOK_WS
+   63       | opt_ws . TOK_LF
+   64       | opt_ws . TOK_COMMENT
+
+    TOK_LF       shift, and go to state 24
+    TOK_WS       shift, and go to state 25
+    TOK_COMMENT  shift, and go to state 26
+
+    $default  reduce using rule 19 (const_def_1)
+
+
+state 67
+
+   15 enum_def_1: TOK_ENUM opt_ws TOK_ID opt_ws . TOK_LPB opt_ws
+   62 opt_ws: opt_ws . TOK_WS
+   63       | opt_ws . TOK_LF
+   64       | opt_ws . TOK_COMMENT
+
+    TOK_LPB      shift, and go to state 85
+    TOK_LF       shift, and go to state 24
+    TOK_WS       shift, and go to state 25
+    TOK_COMMENT  shift, and go to state 26
+
+
+state 68
+
+   10 declare_def: TOK_DECLARE opt_ws TOK_ENUM opt_ws . TOK_ID opt_ws ';'
+   62 opt_ws: opt_ws . TOK_WS
+   63       | opt_ws . TOK_LF
+   64       | opt_ws . TOK_COMMENT
+
+    TOK_ID       shift, and go to state 86
+    TOK_LF       shift, and go to state 24
+    TOK_WS       shift, and go to state 25
+    TOK_COMMENT  shift, and go to state 26
+
+
+state 69
+
+   16 enum_list: enum_list TOK_ID opt_ws . ',' opt_ws
+   62 opt_ws: opt_ws . TOK_WS
+   63       | opt_ws . TOK_LF
+   64       | opt_ws . TOK_COMMENT
+
+    TOK_LF       shift, and go to state 24
+    TOK_WS       shift, and go to state 25
+    TOK_COMMENT  shift, and go to state 26
+    ','          shift, and go to state 87
+
+
+state 70
+
+   22 const_init: '=' opt_ws TOK_BOOL . opt_ws
+
+    $default  reduce using rule 65 (opt_ws)
+
+    opt_ws  go to state 88
+
+
+state 71
+
+   23 const_init: '=' opt_ws TOK_CSTR . opt_ws
+
+    $default  reduce using rule 65 (opt_ws)
+
+    opt_ws  go to state 89
+
+
+state 72
+
+   26 opt_attr: opt_attr TOK_ATTR . $@1 opt_ws opt_const_init
+
+    $default  reduce using rule 25 ($@1)
+
+    $@1  go to state 90
+
+
+state 73
+
+   18 const_def: const_def_1 const_init opt_attr ';' .
+
+    $default  reduce using rule 18 (const_def)
+
+
+state 74
+
+   33 head_1: TOK_ID opt_ws . arg_begin
+   62 opt_ws: opt_ws . TOK_WS
+   63       | opt_ws . TOK_LF
+   64       | opt_ws . TOK_COMMENT
+
+    TOK_LPP      shift, and go to state 91
+    TOK_LF       shift, and go to state 24
+    TOK_WS       shift, and go to state 25
+    TOK_COMMENT  shift, and go to state 26
+
+    arg_begin  go to state 92
+
+
+state 75
+
+   12 func_def: func_prefix opt_ws typed_head end_of_head . body
+
+    TOK_LPB  shift, and go to state 93
+
+    body        go to state 94
+    body_start  go to state 95
+
+
+state 76
+
+   42 return_type: ':' . opt_ws TOK_ID opt_ws
+
+    $default  reduce using rule 65 (opt_ws)
+
+    opt_ws  go to state 96
+
+
+state 77
+
+   31 typed_head: plain_head return_type .
+
+    $default  reduce using rule 31 (typed_head)
+
+
+state 78
+
+   32 plain_head: head_1 args . arg_end opt_ws
+
+    TOK_RPP  shift, and go to state 97
+
+    arg_end  go to state 98
+
+
+state 79
+
+   36 args: args_1 .
+   38 args_1: args_1 . ',' opt_ws arg opt_ws
+
+    ','  shift, and go to state 99
+
+    $default  reduce using rule 36 (args)
+
+
+state 80
+
+   37 args: opt_ws .
+   39 args_1: opt_ws . arg opt_ws
+   62 opt_ws: opt_ws . TOK_WS
+   63       | opt_ws . TOK_LF
+   64       | opt_ws . TOK_COMMENT
+
+    TOK_VAR_ARG  shift, and go to state 100
+    TOK_ID       shift, and go to state 101
+    TOK_LF       shift, and go to state 24
+    TOK_WS       shift, and go to state 25
+    TOK_COMMENT  shift, and go to state 26
+
+    $default  reduce using rule 37 (args)
+
+    arg  go to state 102
+
+
+state 81
+
+   13 rewriter_def: rewriter_prefix opt_ws plain_head end_of_head . body
+
+    TOK_LPB  shift, and go to state 93
+
+    body        go to state 103
+    body_start  go to state 95
+
+
+state 82
+
+   11 event_def: event_prefix opt_ws plain_head opt_attr . end_of_head ';'
+   26 opt_attr: opt_attr . TOK_ATTR $@1 opt_ws opt_const_init
+
+    TOK_ATTR  shift, and go to state 72
+
+    $default  reduce using rule 30 (end_of_head)
+
+    end_of_head  go to state 104
+
+
+state 83
+
+   48 c_code_segment: TOK_LPPB c_code_begin c_body c_code_end TOK_RPPB .
+
+    $default  reduce using rule 48 (c_code_segment)
+
+
+state 84
+
+   50 c_body: c_body c_atom opt_ws .
+   62 opt_ws: opt_ws . TOK_WS
+   63       | opt_ws . TOK_LF
+   64       | opt_ws . TOK_COMMENT
+
+    TOK_LF       shift, and go to state 24
+    TOK_WS       shift, and go to state 25
+    TOK_COMMENT  shift, and go to state 26
+
+    $default  reduce using rule 50 (c_body)
+
+
+state 85
+
+   15 enum_def_1: TOK_ENUM opt_ws TOK_ID opt_ws TOK_LPB . opt_ws
+
+    $default  reduce using rule 65 (opt_ws)
+
+    opt_ws  go to state 105
+
+
+state 86
+
+   10 declare_def: TOK_DECLARE opt_ws TOK_ENUM opt_ws TOK_ID . opt_ws ';'
+
+    $default  reduce using rule 65 (opt_ws)
+
+    opt_ws  go to state 106
+
+
+state 87
+
+   16 enum_list: enum_list TOK_ID opt_ws ',' . opt_ws
+
+    $default  reduce using rule 65 (opt_ws)
+
+    opt_ws  go to state 107
+
+
+state 88
+
+   22 const_init: '=' opt_ws TOK_BOOL opt_ws .
+   62 opt_ws: opt_ws . TOK_WS
+   63       | opt_ws . TOK_LF
+   64       | opt_ws . TOK_COMMENT
+
+    TOK_LF       shift, and go to state 24
+    TOK_WS       shift, and go to state 25
+    TOK_COMMENT  shift, and go to state 26
+
+    $default  reduce using rule 22 (const_init)
+
+
+state 89
+
+   23 const_init: '=' opt_ws TOK_CSTR opt_ws .
+   62 opt_ws: opt_ws . TOK_WS
+   63       | opt_ws . TOK_LF
+   64       | opt_ws . TOK_COMMENT
+
+    TOK_LF       shift, and go to state 24
+    TOK_WS       shift, and go to state 25
+    TOK_COMMENT  shift, and go to state 26
+
+    $default  reduce using rule 23 (const_init)
+
+
+state 90
+
+   26 opt_attr: opt_attr TOK_ATTR $@1 . opt_ws opt_const_init
+
+    $default  reduce using rule 65 (opt_ws)
+
+    opt_ws  go to state 108
+
+
+state 91
+
+   34 arg_begin: TOK_LPP .
+
+    $default  reduce using rule 34 (arg_begin)
+
+
+state 92
+
+   33 head_1: TOK_ID opt_ws arg_begin .
+
+    $default  reduce using rule 33 (head_1)
+
+
+state 93
+
+   46 body_start: TOK_LPB . c_code_begin
+
+    $default  reduce using rule 44 (c_code_begin)
+
+    c_code_begin  go to state 109
+
+
+state 94
+
+   12 func_def: func_prefix opt_ws typed_head end_of_head body .
+
+    $default  reduce using rule 12 (func_def)
+
+
+state 95
+
+   43 body: body_start . c_body body_end
+
+    $default  reduce using rule 65 (opt_ws)
+
+    c_body  go to state 110
+    opt_ws  go to state 39
+
+
+state 96
+
+   42 return_type: ':' opt_ws . TOK_ID opt_ws
+   62 opt_ws: opt_ws . TOK_WS
+   63       | opt_ws . TOK_LF
+   64       | opt_ws . TOK_COMMENT
+
+    TOK_ID       shift, and go to state 111
+    TOK_LF       shift, and go to state 24
+    TOK_WS       shift, and go to state 25
+    TOK_COMMENT  shift, and go to state 26
+
+
+state 97
+
+   35 arg_end: TOK_RPP .
+
+    $default  reduce using rule 35 (arg_end)
+
+
+state 98
+
+   32 plain_head: head_1 args arg_end . opt_ws
+
+    $default  reduce using rule 65 (opt_ws)
+
+    opt_ws  go to state 112
+
+
+state 99
+
+   38 args_1: args_1 ',' . opt_ws arg opt_ws
+
+    $default  reduce using rule 65 (opt_ws)
+
+    opt_ws  go to state 113
+
+
+state 100
+
+   41 arg: TOK_VAR_ARG .
+
+    $default  reduce using rule 41 (arg)
+
+
+state 101
+
+   40 arg: TOK_ID . opt_ws ':' opt_ws TOK_ID
+
+    $default  reduce using rule 65 (opt_ws)
+
+    opt_ws  go to state 114
+
+
+state 102
+
+   39 args_1: opt_ws arg . opt_ws
+
+    $default  reduce using rule 65 (opt_ws)
+
+    opt_ws  go to state 115
+
+
+state 103
+
+   13 rewriter_def: rewriter_prefix opt_ws plain_head end_of_head body .
+
+    $default  reduce using rule 13 (rewriter_def)
+
+
+state 104
+
+   11 event_def: event_prefix opt_ws plain_head opt_attr end_of_head . ';'
+
+    ';'  shift, and go to state 116
+
+
+state 105
+
+   15 enum_def_1: TOK_ENUM opt_ws TOK_ID opt_ws TOK_LPB opt_ws .
+   62 opt_ws: opt_ws . TOK_WS
+   63       | opt_ws . TOK_LF
+   64       | opt_ws . TOK_COMMENT
+
+    TOK_LF       shift, and go to state 24
+    TOK_WS       shift, and go to state 25
+    TOK_COMMENT  shift, and go to state 26
+
+    $default  reduce using rule 15 (enum_def_1)
+
+
+state 106
+
+   10 declare_def: TOK_DECLARE opt_ws TOK_ENUM opt_ws TOK_ID opt_ws . ';'
+   62 opt_ws: opt_ws . TOK_WS
+   63       | opt_ws . TOK_LF
+   64       | opt_ws . TOK_COMMENT
+
+    TOK_LF       shift, and go to state 24
+    TOK_WS       shift, and go to state 25
+    TOK_COMMENT  shift, and go to state 26
+    ';'          shift, and go to state 117
+
+
+state 107
+
+   16 enum_list: enum_list TOK_ID opt_ws ',' opt_ws .
+   62 opt_ws: opt_ws . TOK_WS
+   63       | opt_ws . TOK_LF
+   64       | opt_ws . TOK_COMMENT
+
+    TOK_LF       shift, and go to state 24
+    TOK_WS       shift, and go to state 25
+    TOK_COMMENT  shift, and go to state 26
+
+    $default  reduce using rule 16 (enum_list)
+
+
+state 108
+
+   26 opt_attr: opt_attr TOK_ATTR $@1 opt_ws . opt_const_init
+   62 opt_ws: opt_ws . TOK_WS
+   63       | opt_ws . TOK_LF
+   64       | opt_ws . TOK_COMMENT
+
+    TOK_LF       shift, and go to state 24
+    TOK_WS       shift, and go to state 25
+    TOK_COMMENT  shift, and go to state 26
+    '='          shift, and go to state 33
+
+    $default  reduce using rule 20 (opt_const_init)
+
+    opt_const_init  go to state 118
+    const_init      go to state 119
+
+
+state 109
+
+   46 body_start: TOK_LPB c_code_begin .
+
+    $default  reduce using rule 46 (body_start)
+
+
+state 110
+
+   43 body: body_start c_body . body_end
+   50 c_body: c_body . c_atom opt_ws
+
+    TOK_RPB      shift, and go to state 120
+    TOK_WRITE    shift, and go to state 53
+    TOK_PUSH     shift, and go to state 54
+    TOK_EOF      shift, and go to state 55
+    TOK_TRACE    shift, and go to state 56
+    TOK_ARGS     shift, and go to state 57
+    TOK_ARG      shift, and go to state 58
+    TOK_ARGC     shift, and go to state 59
+    TOK_ID       shift, and go to state 60
+    TOK_CSTR     shift, and go to state 61
+    TOK_ATOM     shift, and go to state 62
+    TOK_C_TOKEN  shift, and go to state 63
+
+    body_end  go to state 121
+    c_atom    go to state 65
+
+
+state 111
+
+   42 return_type: ':' opt_ws TOK_ID . opt_ws
+
+    $default  reduce using rule 65 (opt_ws)
+
+    opt_ws  go to state 122
+
+
+state 112
+
+   32 plain_head: head_1 args arg_end opt_ws .
+   62 opt_ws: opt_ws . TOK_WS
+   63       | opt_ws . TOK_LF
+   64       | opt_ws . TOK_COMMENT
+
+    TOK_LF       shift, and go to state 24
+    TOK_WS       shift, and go to state 25
+    TOK_COMMENT  shift, and go to state 26
+
+    $default  reduce using rule 32 (plain_head)
+
+
+state 113
+
+   38 args_1: args_1 ',' opt_ws . arg opt_ws
+   62 opt_ws: opt_ws . TOK_WS
+   63       | opt_ws . TOK_LF
+   64       | opt_ws . TOK_COMMENT
+
+    TOK_VAR_ARG  shift, and go to state 100
+    TOK_ID       shift, and go to state 101
+    TOK_LF       shift, and go to state 24
+    TOK_WS       shift, and go to state 25
+    TOK_COMMENT  shift, and go to state 26
+
+    arg  go to state 123
+
+
+state 114
+
+   40 arg: TOK_ID opt_ws . ':' opt_ws TOK_ID
+   62 opt_ws: opt_ws . TOK_WS
+   63       | opt_ws . TOK_LF
+   64       | opt_ws . TOK_COMMENT
+
+    TOK_LF       shift, and go to state 24
+    TOK_WS       shift, and go to state 25
+    TOK_COMMENT  shift, and go to state 26
+    ':'          shift, and go to state 124
+
+
+state 115
+
+   39 args_1: opt_ws arg opt_ws .
+   62 opt_ws: opt_ws . TOK_WS
+   63       | opt_ws . TOK_LF
+   64       | opt_ws . TOK_COMMENT
+
+    TOK_LF       shift, and go to state 24
+    TOK_WS       shift, and go to state 25
+    TOK_COMMENT  shift, and go to state 26
+
+    $default  reduce using rule 39 (args_1)
+
+
+state 116
+
+   11 event_def: event_prefix opt_ws plain_head opt_attr end_of_head ';' .
+
+    $default  reduce using rule 11 (event_def)
+
+
+state 117
+
+   10 declare_def: TOK_DECLARE opt_ws TOK_ENUM opt_ws TOK_ID opt_ws ';' .
+
+    $default  reduce using rule 10 (declare_def)
+
+
+state 118
+
+   26 opt_attr: opt_attr TOK_ATTR $@1 opt_ws opt_const_init .
+
+    $default  reduce using rule 26 (opt_attr)
+
+
+state 119
+
+   21 opt_const_init: const_init .
+
+    $default  reduce using rule 21 (opt_const_init)
+
+
+state 120
+
+   47 body_end: TOK_RPB . c_code_end
+
+    $default  reduce using rule 45 (c_code_end)
+
+    c_code_end  go to state 125
+
+
+state 121
+
+   43 body: body_start c_body body_end .
+
+    $default  reduce using rule 43 (body)
+
+
+state 122
+
+   42 return_type: ':' opt_ws TOK_ID opt_ws .
+   62 opt_ws: opt_ws . TOK_WS
+   63       | opt_ws . TOK_LF
+   64       | opt_ws . TOK_COMMENT
+
+    TOK_LF       shift, and go to state 24
+    TOK_WS       shift, and go to state 25
+    TOK_COMMENT  shift, and go to state 26
+
+    $default  reduce using rule 42 (return_type)
+
+
+state 123
+
+   38 args_1: args_1 ',' opt_ws arg . opt_ws
+
+    $default  reduce using rule 65 (opt_ws)
+
+    opt_ws  go to state 126
+
+
+state 124
+
+   40 arg: TOK_ID opt_ws ':' . opt_ws TOK_ID
+
+    $default  reduce using rule 65 (opt_ws)
+
+    opt_ws  go to state 127
+
+
+state 125
+
+   47 body_end: TOK_RPB c_code_end .
+
+    $default  reduce using rule 47 (body_end)
+
+
+state 126
+
+   38 args_1: args_1 ',' opt_ws arg opt_ws .
+   62 opt_ws: opt_ws . TOK_WS
+   63       | opt_ws . TOK_LF
+   64       | opt_ws . TOK_COMMENT
+
+    TOK_LF       shift, and go to state 24
+    TOK_WS       shift, and go to state 25
+    TOK_COMMENT  shift, and go to state 26
+
+    $default  reduce using rule 38 (args_1)
+
+
+state 127
+
+   40 arg: TOK_ID opt_ws ':' opt_ws . TOK_ID
+   62 opt_ws: opt_ws . TOK_WS
+   63       | opt_ws . TOK_LF
+   64       | opt_ws . TOK_COMMENT
+
+    TOK_ID       shift, and go to state 128
+    TOK_LF       shift, and go to state 24
+    TOK_WS       shift, and go to state 25
+    TOK_COMMENT  shift, and go to state 26
+
+
+state 128
+
+   40 arg: TOK_ID opt_ws ':' opt_ws TOK_ID .
+
+    $default  reduce using rule 40 (arg)
